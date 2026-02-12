@@ -7,52 +7,58 @@ import { type Mutable } from '../utility-types.js';
 const hop = Object.prototype.hasOwnProperty;
 
 /**
- * Deep clones ONLY plain objects (incl. null-prototype).
- * Arrays are shallow-copied, BUT any array element that is a plain object is deep-cloned.
- * Everything else is shallow-cloned.
+ * Deep clones ONLY plain-objects (incl. null-prototype).
+ *
+ * - Root value must be a plain-object.
+ * - Recursion descends only into plain-objects and arrays.
+ * - Nested Date values are copied by epoch.
+ * - Other nested non-plain objects are shallow-cloned.
  */
 function copy<T extends PlainObject>(value: T): Mutable<T> {
-  if (value === null || typeof value !== 'object') return value as Mutable<T>;
-  // Arrays: shallow copy, deep-clone plain-object elements
-  if (Array.isArray(value)) return cloneArray(value) as unknown as Mutable<T>;
-  // Plain objects: deep
-  if (isPlainObject(value)) {
-    return clonePlainObject(
-      value as Dict,
-      Object.getPrototypeOf(value),
-    ) as Mutable<T>;
+  if (!isPlainObject(value)) {
+    throw new TypeError('copy only accepts a plain-object as the root value');
   }
-  // Everything else: shallow
-  return cloneNonPlainShallow(value) as Mutable<T>;
-}
-
-function cloneArray(source: readonly unknown[]): unknown[] {
-  const len = source.length;
-  const out = new Array(len);
-  for (let i = 0; i < len; i++) {
-    const v = source[i];
-    out[i] = isPlainObject(v)
-      ? clonePlainObject(v, Object.getPrototypeOf(v))
-      : v;
-  }
-  return out;
+  return clonePlainObject(
+    value as Dict,
+    Object.getPrototypeOf(value),
+  ) as Mutable<T>;
 }
 
 function clonePlainObject(source: object, proto: object | null): Dict {
   const out: Dict = proto === null ? Object.create(null) : {};
   for (const key in source) {
     if (!hop.call(source, key)) continue;
-    const v = (source as Dict)[key];
-    // Only recurse into plain objects; everything else is copied by reference.
-    out[key] = isPlainObject(v)
-      ? clonePlainObject(v, Object.getPrototypeOf(v))
-      : v;
+    out[key] = cloneValue((source as Dict)[key]);
+  }
+  return out;
+}
+
+function cloneValue(value: unknown): unknown {
+  if (isPlainObject(value)) {
+    return clonePlainObject(value as Dict, Object.getPrototypeOf(value));
+  }
+  if (Array.isArray(value)) {
+    return cloneArray(value);
+  }
+  if (value instanceof Date) {
+    return new Date(value.getTime());
+  }
+  if (typeof value === 'object' && value !== null) {
+    return cloneNonPlainShallow(value);
+  }
+  return value;
+}
+
+function cloneArray(source: readonly unknown[]): unknown[] {
+  const len = source.length;
+  const out = new Array(len);
+  for (let i = 0; i < len; i++) {
+    out[i] = cloneValue(source[i]);
   }
   return out;
 }
 
 function cloneNonPlainShallow<T>(value: T): T {
-  if (value instanceof Date) return new Date(value.getTime()) as T;
   if (value instanceof RegExp) {
     const re = new RegExp(value.source, value.flags);
     re.lastIndex = value.lastIndex;

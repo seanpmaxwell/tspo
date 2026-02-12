@@ -174,10 +174,8 @@ describe('Collections', () => {
 
 // -- Utilities -- //
 
-//   iterate,
-//   copy,
-//   compare
-
-// After the other testing is finished
-// look at the readme file and the src/index.ts file and generate for me a
-// list of human readable unit-tests in vitest which thoroughly cover all the edge cases in the file `ai.test.ts`
+describe('Utilities', () => {
+  describe('.copy', () => {
+    // pick up here
+  });
+});

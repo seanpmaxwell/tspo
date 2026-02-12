@@ -368,12 +368,12 @@ pojo.iterate(
 );
 ```
 
-#### `.copy(T: object): T`
+#### `.copy(T: PlainObject): T`
 
-Recursively clones a plain-object **BUT** only plain-objects and arrays will be stepped into. `Date` will be copied using the epoch and other nested-objects (i.e. `Set/Map`) will only be _shallow-cloned_. This is much faster than `structuredClone`, so is recommended for cloning when you know you don't need deep-cloning for anything other than plain-objects/arrays.
+Copies a plain-object root value. Recursion only steps into nested plain-objects and arrays. Nested `Date` values are copied by epoch, and other nested objects (i.e. `Set/Map`) are _shallow-cloned_. This is much faster than `structuredClone`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
 
 ```ts
-const snapshot = pojo.clone({
+const snapshot = pojo.copy({
   id: 1,
   birthdate: new Date(), // `birthdate` -> new Date() of same epoch
   address: {
