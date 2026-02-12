@@ -10,13 +10,15 @@ It provides a focused set of object helpers (`omit`, `pick`, `merge`, `append`, 
 
 ## What counts as a POJO?
 
-To be clear, a **plain-old-javascript-object (pojo)** is any object which inherits directly from the base `Object` class and no other. This is different from objects created with `Object.create(null)` which do not have any inheritance; we'll refer to these as **null-prototype objects (npo)**. **pojos** can be created by calling `new Object()` or more-commonly through object-literals (i.e `{}`). Methods like `.hasOwnProperty` will work on **pojo's** but not **npo's**.
+A **plain-old-javascript-object (P.O.J.O or pojo)** is any object which inherits directly from the base `Object` class and no other or is created through `Object.create(null)`
 
-| Name                    | Abbreviation/Acronym | Type                           |
-| ----------------------- | -------------------- | ------------------------------ |
-| `PlainObject`           | `pojo`               | `NonNullable<object>`          |
-| `Dictonary`             | `Dict`               | `Record<string, unknown>`      |
-| `null-prototype object` | `npo`                | `Dict & { __proto__?: never }` |
+3 ways:
+
+- **object-literals:** (most-common), i.e `{ id: 1, name: 'john' }`
+- **Object constructor:**: `new Object()`
+- **null-prototype objects:** `Object.create(null)`
+
+> _object-literals_ and _instances of Object_ will inherit from the base _Object_ class; hence, they can use methods like `.hasOwnProperty`. _null-prototype objects_ inherit from nothing so cannot use any built-in objects.
 
 ## Why jet-pojo
 
@@ -94,7 +96,7 @@ Use this as a quick decision guide:
 | `entries`          | No            | Typed `Object.entries` tuple                    |
 | `firstEntry`       | No            | First entry in object enumeration order         |
 | `iterate`          | No            | Recursive walker over nested POJOs              |
-| `clone`            | No            | Deep clone utility                              |
+| `copy`             | No            | Deep clone utility                              |
 
 ## API reference
 
@@ -292,14 +294,15 @@ const [key, value] = pojo.firstEntry({ id: 1, name: 'Ada' });
 // Type: ["id", number]
 ```
 
-### `.iterate(root: object, cb: (argument) => void): void`
+### `.iterate(root: object | array, cb: (argument) => void): void`
 
-Recursively walks nested POJOs and calls `callback` for every non-POJO leaf value.
+Recursively walks nested POJOs and arrays and calls `callback` for every leaf
+that is neither a POJO nor an array.
 
 Callback arguments:
 
-- `parent`: object containing the current leaf
-- `key`: key on `parent`
+- `parent`: object or array containing the current leaf
+- `key`: key/index on `parent`
 - `value`: leaf value
 - `path`: path to `parent` from root
 
@@ -313,27 +316,15 @@ pojo.iterate(
     // fires for:
     // user.id   -> path: ['user']
     // user.name -> path: ['user']
-    // flags     -> path: []
+    // flags[0]  -> path: ['flags']
     console.log(path, key, value);
   },
 );
 ```
 
-### `.clone(value)`
+### `.copy(value)`
 
-Deep clone helper intended for acyclic data structures.
-
-Current behavior includes cloning support for:
-
-- primitives (returned as-is),
-- arrays,
-- plain objects (including null-prototype),
-- `Date`,
-- `RegExp` (including `lastIndex`),
-- `Map`,
-- `Set`,
-- `ArrayBuffer`, typed arrays, and `DataView`,
-- generic objects (prototype preserved; enumerable own props copied).
+Recursively clones an object **BUT** only plain-objects and arrays will be deep-cloned. All other nested-objects will be shallow cloned. This can be faster than `structuredClone` if you know there are
 
 ```ts
 const snapshot = pojo.clone(state);

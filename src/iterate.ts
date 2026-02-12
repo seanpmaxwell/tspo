@@ -5,13 +5,15 @@ import isPlainObject, { POJO } from './isPlainObject.js';
 ******************************************************************************/
 
 type Path = readonly (string | number)[];
+type IterateParent = POJO | unknown[];
+type IterateKey = string | number;
 
 // Callback for the iterate function
 type IterateCb = (args: {
-  parent: POJO;
-  key: string;
+  parent: IterateParent;
+  key: IterateKey;
   value: unknown;
-  path: Path; // path to the parent object
+  path: Path; // path to the parent node
 }) => void;
 
 /******************************************************************************
@@ -19,29 +21,40 @@ type IterateCb = (args: {
 ******************************************************************************/
 
 /**
- * Recursively walks only "plain objects" (as defined by isPlainObject),
- * and calls `onNonPlain` for every key whose value is NOT a plain object.
+ * Recursively walks plain objects and arrays, and calls `onNonPlain` for
+ * every leaf whose value is neither a plain object nor an array.
  *
- * - Descends into a value only if isPlainObject(value) === true.
- * - Fires callback for *every* non-plain value encountered as a property value.
+ * - Descends into a value if it is a plain object or array.
+ * - Fires callback for every non-descended value.
  */
 function iterate(root: unknown, cb: IterateCb): void {
-  if (!isPlainObject(root)) return;
-  interateHelper(root, [], cb);
+  if (!isPlainObject(root) && !Array.isArray(root)) return;
+  iterateHelper(root, [], cb);
 }
 
 /**
  * @private
  * @see iterate
  */
-function interateHelper(
-  node: POJO,
+function iterateHelper(
+  node: IterateParent,
   path: (string | number)[],
   cb: IterateCb,
 ): void {
+  if (Array.isArray(node)) {
+    for (const [key, value] of node.entries()) {
+      if (isPlainObject(value) || Array.isArray(value)) {
+        iterateHelper(value, [...path, key], cb);
+      } else {
+        cb({ parent: node, key, value, path });
+      }
+    }
+    return;
+  }
+
   for (const [key, value] of Object.entries(node)) {
-    if (isPlainObject(value)) {
-      interateHelper(value, [...path, key], cb);
+    if (isPlainObject(value) || Array.isArray(value)) {
+      iterateHelper(value, [...path, key], cb);
     } else {
       cb({ parent: node, key, value, path });
     }

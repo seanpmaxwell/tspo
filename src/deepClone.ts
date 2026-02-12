@@ -1,13 +1,7 @@
+import isPlainObject, { Dict } from './isPlainObject.js';
 import { Mutable } from './utility-types.js';
 
-type Dict = Record<string, any>;
 const hop = Object.prototype.hasOwnProperty;
-
-function isPlainOrBareObj(value: unknown): value is Dict {
-  if (value === null || typeof value !== 'object') return false;
-  const proto = Object.getPrototypeOf(value);
-  return proto === Object.prototype || proto === null;
-}
 
 /**
  * Deep clones ONLY plain objects (incl. null-prototype).
@@ -19,7 +13,7 @@ function deepClone<T>(value: T): Mutable<T> {
   // Arrays: shallow copy, deep-clone plain-object elements
   if (Array.isArray(value)) return cloneArray(value) as unknown as Mutable<T>;
   // Plain objects: deep
-  if (isPlainOrBareObj(value)) {
+  if (isPlainObject(value)) {
     return clonePlainObject(
       value as Dict,
       Object.getPrototypeOf(value),
@@ -34,20 +28,20 @@ function cloneArray(source: readonly unknown[]): unknown[] {
   const out = new Array(len);
   for (let i = 0; i < len; i++) {
     const v = source[i];
-    out[i] = isPlainOrBareObj(v)
+    out[i] = isPlainObject(v)
       ? clonePlainObject(v, Object.getPrototypeOf(v))
       : v;
   }
   return out;
 }
 
-function clonePlainObject(source: Dict, proto: object | null): Dict {
+function clonePlainObject(source: object, proto: object | null): Dict {
   const out: Dict = proto === null ? Object.create(null) : {};
   for (const key in source) {
     if (!hop.call(source, key)) continue;
-    const v = source[key];
+    const v = (source as Dict)[key];
     // Only recurse into plain objects; everything else is copied by reference.
-    out[key] = isPlainOrBareObj(v)
+    out[key] = isPlainObject(v)
       ? clonePlainObject(v, Object.getPrototypeOf(v))
       : v;
   }

@@ -20,11 +20,17 @@ export type POJO = NonNullable<object>;
  * Check if a 'unknown' is a 'PlainObject.
  */
 function isPlainObject(arg: unknown): arg is POJO {
-  if (arg === null || typeof arg !== 'object') {
+  if (typeof arg !== 'object' || arg === null) {
     return false;
   }
-  const proto = Object.getPrototypeOf(arg);
-  return proto === objectProto || proto === null;
+  const argProto = Object.getPrototypeOf(arg);
+  return (
+    (argProto === null ||
+      argProto === objectProto ||
+      Object.getPrototypeOf(argProto) === null) &&
+    !(Symbol.toStringTag in arg) &&
+    !(Symbol.iterator in arg)
+  );
 }
 
 /******************************************************************************

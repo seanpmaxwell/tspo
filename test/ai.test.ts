@@ -709,14 +709,13 @@ describe('pojo.firstEntry', () => {
 });
 
 describe('pojo.iterate', () => {
-  test('should no-op when root is not a POJO (null, primitive, array, Date, class instance)', () => {
+  test('should no-op when root is not traversable (null, primitive, Date, class instance)', () => {
     class User {}
     const cb = vi.fn();
 
     pojo.iterate(null, cb);
     pojo.iterate(1, cb);
     pojo.iterate('x', cb);
-    pojo.iterate([1, 2], cb);
     pojo.iterate(new Date(), cb);
     pojo.iterate(new User(), cb);
 
@@ -773,16 +772,41 @@ describe('pojo.iterate', () => {
     });
   });
 
-  test('should treat arrays as leaf values and not recurse into array elements', () => {
+  test('should recurse into array elements and nested plain objects inside arrays', () => {
     const cb = vi.fn();
     pojo.iterate({ arr: [1, { x: 2 }] }, cb);
 
-    expect(cb).toHaveBeenCalledTimes(1);
-    expect(cb).toHaveBeenCalledWith({
-      parent: { arr: [1, { x: 2 }] },
-      key: 'arr',
-      value: [1, { x: 2 }],
+    expect(cb).toHaveBeenCalledTimes(2);
+    expect(cb).toHaveBeenNthCalledWith(1, {
+      parent: [1, { x: 2 }],
+      key: 0,
+      value: 1,
+      path: ['arr'],
+    });
+    expect(cb).toHaveBeenNthCalledWith(2, {
+      parent: { x: 2 },
+      key: 'x',
+      value: 2,
+      path: ['arr', 1],
+    });
+  });
+
+  test('should recurse into root arrays', () => {
+    const cb = vi.fn();
+    pojo.iterate([1, { x: 2 }], cb);
+
+    expect(cb).toHaveBeenCalledTimes(2);
+    expect(cb).toHaveBeenNthCalledWith(1, {
+      parent: [1, { x: 2 }],
+      key: 0,
+      value: 1,
       path: [],
+    });
+    expect(cb).toHaveBeenNthCalledWith(2, {
+      parent: { x: 2 },
+      key: 'x',
+      value: 2,
+      path: [1],
     });
   });
 
@@ -798,8 +822,8 @@ describe('pojo.iterate', () => {
     expect(seen).toEqual(['map', 'set', 'date', 'reg']);
   });
 
-  test('should provide path to the parent object, not the full leaf path including the current key', () => {
-    const seen: Array<{ path: readonly (string | number)[]; key: string }> = [];
+  test('should provide path to the parent node, not the full leaf path including the current key', () => {
+    const seen: Array<{ path: readonly (string | number)[]; key: string | number }> = [];
     pojo.iterate({ a: { b: { c: 1 } } }, ({ path, key }) =>
       seen.push({ path, key }),
     );
@@ -826,7 +850,7 @@ describe('pojo.iterate', () => {
       enumerable: false,
     });
 
-    const keys: string[] = [];
+    const keys: (string | number)[] = [];
     pojo.iterate(root, ({ key }) => keys.push(key));
 
     expect(keys).toEqual(['visible']);
