@@ -1,0 +1,5 @@
+node_modules
+dist
+.vscode
+README-git
+benchmarks-upstream
