@@ -723,11 +723,14 @@ describe('pojo.iterate', () => {
   });
 
   test('should recurse into nested plain objects', () => {
-    const seen: Array<{ path: readonly (string | number)[]; key: string; value: unknown }> = [];
+    const seen: Array<{
+      path: readonly (string | number)[];
+      key: string;
+      value: unknown;
+    }> = [];
 
-    pojo.iterate(
-      { a: { b: 1, c: { d: 2 } } },
-      ({ path, key, value }) => seen.push({ path, key, value }),
+    pojo.iterate({ a: { b: 1, c: { d: 2 } } }, ({ path, key, value }) =>
+      seen.push({ path, key, value }),
     );
 
     expect(seen).toEqual([
@@ -823,7 +826,10 @@ describe('pojo.iterate', () => {
   });
 
   test('should provide path to the parent node, not the full leaf path including the current key', () => {
-    const seen: Array<{ path: readonly (string | number)[]; key: string | number }> = [];
+    const seen: Array<{
+      path: readonly (string | number)[];
+      key: string | number;
+    }> = [];
     pojo.iterate({ a: { b: { c: 1 } } }, ({ path, key }) =>
       seen.push({ path, key }),
     );
@@ -863,18 +869,18 @@ describe('pojo.iterate', () => {
   });
 });
 
-describe('pojo.clone', () => {
+describe('pojo.copy', () => {
   test('should return primitives as-is', () => {
-    expect(pojo.clone(1)).toBe(1);
-    expect(pojo.clone('x')).toBe('x');
-    expect(pojo.clone(null)).toBeNull();
-    expect(pojo.clone(undefined)).toBeUndefined();
-    expect(pojo.clone(true)).toBe(true);
+    expect(pojo.copy(1)).toBe(1);
+    expect(pojo.copy('x')).toBe('x');
+    expect(pojo.copy(null)).toBeNull();
+    expect(pojo.copy(undefined)).toBeUndefined();
+    expect(pojo.copy(true)).toBe(true);
   });
 
   test('should deep clone plain objects so nested plain objects are not shared', () => {
     const src = { a: { b: 1 } };
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).toEqual(src);
     expect(out).not.toBe(src);
@@ -885,15 +891,15 @@ describe('pojo.clone', () => {
     const src = Object.create(null) as Record<string, unknown>;
     src.nested = { x: 1 };
 
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
     expect(Object.getPrototypeOf(out)).toBeNull();
     expect(out).not.toBe(src);
-    expect((out.nested as object)).not.toBe(src.nested);
+    expect(out.nested as object).not.toBe(src.nested);
   });
 
   test('should clone arrays and preserve length/order', () => {
     const src = [1, 2, 3];
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).toEqual([1, 2, 3]);
     expect(out).not.toBe(src);
@@ -902,7 +908,7 @@ describe('pojo.clone', () => {
   test('should define whether nested arrays are deep-cloned or shallow-cloned and keep behavior explicit in tests', () => {
     const nested = [1];
     const src = [nested];
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).not.toBe(src);
     expect(out[0]).toBe(nested);
@@ -911,7 +917,7 @@ describe('pojo.clone', () => {
   test('should define whether non-POJO values nested inside arrays are cloned or copied by reference', () => {
     const date = new Date('2024-01-01T00:00:00.000Z');
     const src = [date];
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).not.toBe(src);
     expect(out[0]).toBe(date);
@@ -919,7 +925,7 @@ describe('pojo.clone', () => {
 
   test('should clone Date instances with equal timestamps but different references', () => {
     const src = new Date('2024-01-01T00:00:00.000Z');
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).not.toBe(src);
     expect(out.getTime()).toBe(src.getTime());
@@ -929,7 +935,7 @@ describe('pojo.clone', () => {
     const src = /ab/g;
     src.lastIndex = 2;
 
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
     expect(out).not.toBe(src);
     expect(out.source).toBe('ab');
     expect(out.flags).toBe('g');
@@ -940,7 +946,7 @@ describe('pojo.clone', () => {
     const keyObj = { id: 1 };
     const valueObj = { name: 'Ada' };
     const src = new Map([[keyObj, valueObj]]);
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).not.toBe(src);
     expect([...out.keys()][0]).toBe(keyObj);
@@ -950,7 +956,7 @@ describe('pojo.clone', () => {
   test('should clone Set instances and define whether members are deep-cloned or shallow-copied', () => {
     const member = { id: 1 };
     const src = new Set([member]);
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).not.toBe(src);
     expect([...out][0]).toBe(member);
@@ -961,7 +967,7 @@ describe('pojo.clone', () => {
     const srcView = new Uint8Array(src);
     srcView[0] = 7;
 
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
     const outView = new Uint8Array(out);
     outView[0] = 1;
 
@@ -972,7 +978,7 @@ describe('pojo.clone', () => {
 
   test('should clone typed arrays with independent buffers', () => {
     const src = new Uint8Array([1, 2, 3]);
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
     out[0] = 9;
 
     expect(out).not.toBe(src);
@@ -985,7 +991,7 @@ describe('pojo.clone', () => {
     const src = new DataView(buffer);
     src.setUint8(0, 10);
 
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
     out.setUint8(0, 77);
 
     expect(out).not.toBe(src);
@@ -998,7 +1004,7 @@ describe('pojo.clone', () => {
       constructor(public name: string) {}
     }
     const src = new User('Ada');
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).not.toBe(src);
     expect(out instanceof User).toBe(true);
@@ -1014,7 +1020,7 @@ describe('pojo.clone', () => {
       }
     }
     const src = new Box() as Box & { hidden?: number };
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out.visible).toBe(1);
     expect((out as any).hidden).toBeUndefined();
@@ -1023,7 +1029,7 @@ describe('pojo.clone', () => {
   test('should define behavior for symbol-keyed properties (copied vs omitted)', () => {
     const sym = Symbol('sym');
     const src = { a: 1, [sym]: 2 };
-    const out = pojo.clone(src);
+    const out = pojo.copy(src);
 
     expect(out).toEqual({ a: 1 });
     expect(Object.getOwnPropertySymbols(out)).toHaveLength(0);
@@ -1033,6 +1039,6 @@ describe('pojo.clone', () => {
     const src: Record<string, unknown> = {};
     src.self = src;
 
-    expect(() => pojo.clone(src)).toThrow();
+    expect(() => pojo.copy(src)).toThrow();
   });
 });

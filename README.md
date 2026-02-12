@@ -324,10 +324,28 @@ pojo.iterate(
 
 ### `.copy(value)`
 
-Recursively clones an object **BUT** only plain-objects and arrays will be deep-cloned. All other nested-objects will be shallow cloned. This can be faster than `structuredClone` if you know there are
+Recursively clones an object **BUT** only plain-objects and arrays will be deep-cloned. All other nested-objects will only be shallow-cloned. This can be much faster than `structuredClone` when you know you don't need deep-cloning for anything other plain-objects/arrays.
 
 ```ts
-const snapshot = pojo.clone(state);
+const snapshot = pojo.clone({
+  id: 1,
+  birthdate: new Date(), // 'birthdate' -> shallow-cloned
+  address: {
+    // 'address' -> deep-cloned
+    street: '123 fake st',
+    city: 'seattle',
+  },
+  jobHistory: [
+    // 'jobHistory' -> deep-cloned
+    'janitor',
+    {
+      // 'jobHistory[1]' -> deep-cloned
+      company: 'Lowes',
+      role: 'sales associate',
+      otherRoles: new Set(['janitory', 'cashier']), // -> shallow-cloned
+    },
+  ],
+});
 ```
 
 ## Exported types

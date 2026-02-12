@@ -21,10 +21,10 @@ type IterateCb = (args: {
 ******************************************************************************/
 
 /**
- * Recursively walks plain objects and arrays, and calls `onNonPlain` for
- * every leaf whose value is neither a plain object nor an array.
+ * Recursively walks plain-objects and arrays, and calls a callback for
+ * every key whose value is neither a plain-object nor an array.
  *
- * - Descends into a value if it is a plain object or array.
+ * - Descends into a value if it is a plain-object or array.
  * - Fires callback for every non-descended value.
  */
 function iterate(root: unknown, cb: IterateCb): void {

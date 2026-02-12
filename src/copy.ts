@@ -8,7 +8,7 @@ const hop = Object.prototype.hasOwnProperty;
  * Arrays are shallow-copied, BUT any array element that is a plain object is deep-cloned.
  * Everything else is shallow-cloned.
  */
-function deepClone<T>(value: T): Mutable<T> {
+function copy<T>(value: T): Mutable<T> {
   if (value === null || typeof value !== 'object') return value as Mutable<T>;
   // Arrays: shallow copy, deep-clone plain-object elements
   if (Array.isArray(value)) return cloneArray(value) as unknown as Mutable<T>;
@@ -82,4 +82,4 @@ function cloneNonPlainShallow<T>(value: T): T {
   return out as T;
 }
 
-export default deepClone;
+export default copy;

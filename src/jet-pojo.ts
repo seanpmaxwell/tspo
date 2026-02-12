@@ -1,4 +1,4 @@
-import deepClone from './deepClone.js';
+import copy from './copy.js';
 import isPlainObject, { Dict, POJO } from './isPlainObject.js';
 import iterate from './iterate.js';
 import {
@@ -243,5 +243,5 @@ export default {
   firstEntry,
   fill,
   iterate,
-  clone: deepClone,
+  copy,
 } as const;
