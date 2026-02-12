@@ -1,4 +1,5 @@
-import pojo, { POJO } from './jet-pojo.js';
+import { POJO } from './isPlainObject.js';
+import pojo from './jet-pojo.js';
 import { KeysParam, KeyUnion, SetToNever } from './utility-types.js';
 
 /******************************************************************************

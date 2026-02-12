@@ -79,6 +79,10 @@ test('isValue', () => {
   }
 });
 
+test('keys', () => {
+  const keys = pojo.keys(User);
+});
+
 test('entries', () => {
   const entries = pojo.entries(User);
 });

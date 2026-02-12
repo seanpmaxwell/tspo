@@ -1,46 +1,20 @@
 import deepClone from './deepClone.js';
+import isPlainObject, { Dict, POJO } from './isPlainObject.js';
+import iterate from './iterate.js';
 import {
   EntriesTuple,
   KeysParam,
+  KeyTuple,
   KeyUnion,
   OmitKeys,
   PickKeys,
   SetToNever,
+  ValueTuple,
 } from './utility-types.js';
-
-/******************************************************************************
-                                       Constants                                    
-******************************************************************************/
-
-const objectProto = Object.prototype;
 
 /******************************************************************************
                                        Types                                    
 ******************************************************************************/
-
-// Basic Types
-export type StrPOJO = { [key: string]: unknown };
-export type POJO = NonNullable<object>;
-type Path = readonly (string | number)[];
-
-export type Primitive =
-  | string
-  | number
-  | boolean
-  | bigint
-  | symbol
-  | null
-  | undefined;
-
-// Callback for the iterate function
-type IterateCb = (args: {
-  parent: POJO;
-  key: string;
-  value: unknown;
-  path: Path; // path to the parent object
-}) => void;
-
-// -------------------------- Complex-Utilities ---------------------------- //
 
 // Must be defined in the file it is used in
 type CollapseType<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
@@ -55,28 +29,17 @@ type CollapseTypeAlt<T> = {
 ******************************************************************************/
 
 /**
- * Check if a 'unknown' is a 'PlainObject.
- */
-function isPojo(arg: unknown): arg is POJO {
-  if (arg === null || typeof arg !== 'object') {
-    return false;
-  }
-  const proto = Object.getPrototypeOf(arg);
-  return proto === objectProto || proto === null;
-}
-
-/**
  * Return a new object by excluding certains keys from an object.
  */
 function omit<T extends POJO, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): CollapseType<OmitKeys<T, K>> {
-  const retVal: StrPOJO = {},
+  const retVal: Dict = {},
     set = new Set(Array.isArray(keys) ? keys : [keys]);
   for (const key in obj) {
     if (!set.has(key)) {
-      retVal[key] = (obj as StrPOJO)[key];
+      retVal[key] = (obj as Dict)[key];
     }
   }
   return retVal as CollapseType<OmitKeys<T, K>>;
@@ -89,11 +52,11 @@ function pick<T extends POJO, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): CollapseType<PickKeys<T, K>> {
-  const retVal: StrPOJO = {},
+  const retVal: Dict = {},
     set = new Set(Array.isArray(keys) ? keys : [keys]);
   for (const key in obj) {
     if (set.has(key)) {
-      retVal[key] = (obj as StrPOJO)[key];
+      retVal[key] = (obj as Dict)[key];
     }
   }
   return retVal as CollapseType<PickKeys<T, K>>;
@@ -118,7 +81,7 @@ function append<T extends POJO, U extends POJO>(
   addOn: U,
 ): asserts obj is CollapseTypeAlt<T & U> {
   for (const key in addOn) {
-    (obj as StrPOJO)[key] = (addOn as StrPOJO)[key];
+    (obj as Dict)[key] = (addOn as Dict)[key];
   }
 }
 
@@ -129,7 +92,7 @@ function appendOne<T extends POJO, K extends string, V>(
   obj: T,
   entry: [K, V],
 ): asserts obj is CollapseTypeAlt<T & Record<K, V>> {
-  (obj as StrPOJO)[entry[0]] = entry[1];
+  (obj as Dict)[entry[0]] = entry[1];
 }
 
 /**
@@ -141,7 +104,7 @@ function remove<T extends POJO, K extends KeysParam<T>>(
 ): asserts obj is CollapseTypeAlt<SetToNever<T, KeyUnion<T, K>>> {
   const keyArr = Array.isArray(keys) ? keys : [keys];
   for (const key of keyArr) {
-    delete (obj as StrPOJO)[key];
+    delete (obj as Dict)[key];
   }
 }
 
@@ -149,7 +112,7 @@ function remove<T extends POJO, K extends KeysParam<T>>(
  * Get a value on an object and return 'undefined' if not found.
  */
 function index<T extends object>(obj: T, key: string): T[keyof T] | undefined {
-  return (obj as StrPOJO)[key] as T[keyof T] | undefined;
+  return (obj as Dict)[key] as T[keyof T] | undefined;
 }
 
 /**
@@ -157,7 +120,7 @@ function index<T extends object>(obj: T, key: string): T[keyof T] | undefined {
  */
 function safeIndex<T extends object>(obj: T, key: string): T[keyof T] {
   if (key in obj) {
-    return (obj as StrPOJO)[key] as T[keyof T];
+    return (obj as Dict)[key] as T[keyof T];
   } else {
     throw new Error(
       'safeIndex was passed a key not present on the object. key: ' + key,
@@ -231,15 +194,15 @@ function isValue<T extends object>(obj: T, arg: unknown): arg is T[keyof T] {
 /**
  * Get a type-safe array of the object keys.
  */
-function keys<T extends object>(obj: T): (keyof T)[] {
-  return Object.keys(obj) as (keyof T)[];
+function keys<T extends object>(obj: T): KeyTuple<T> {
+  return Object.keys(obj) as KeyTuple<T>;
 }
 
 /**
  * Get a type-safe array of the object values
  */
-function values<T extends object>(obj: T): T[keyof T][] {
-  return Object.values(obj) as T[keyof T][];
+function values<T extends object>(obj: T): ValueTuple<T> {
+  return Object.values(obj) as ValueTuple<T>;
 }
 
 /**
@@ -256,42 +219,12 @@ function firstEntry<T extends object, K extends keyof T>(obj: T): [K, T[K]] {
   return Object.entries(obj)[0] as [K, T[K]];
 }
 
-/**
- * Recursively walks only "plain objects" (as defined by isPlainObject),
- * and calls `onNonPlain` for every key whose value is NOT a plain object.
- *
- * - Descends into a value only if isPlainObject(value) === true.
- * - Fires callback for *every* non-plain value encountered as a property value.
- */
-function iterate(root: unknown, cb: IterateCb): void {
-  if (!isPojo(root)) return;
-  interateHelper(root, [], cb);
-}
-
-/**
- * @private
- * @see iterate
- */
-function interateHelper(
-  node: POJO,
-  path: (string | number)[],
-  cb: IterateCb,
-): void {
-  for (const [key, value] of Object.entries(node)) {
-    if (isPojo(value)) {
-      interateHelper(value, [...path, key], cb);
-    } else {
-      cb({ parent: node, key, value, path });
-    }
-  }
-}
-
 /******************************************************************************
                                        Export                                    
 ******************************************************************************/
 
 export default {
-  is: isPojo,
+  is: isPlainObject,
   omit,
   pick,
   merge,
