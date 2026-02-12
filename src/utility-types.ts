@@ -39,11 +39,16 @@ type NonNeverKeys<T extends object> = {
 // Pick only entries whose values are not `never`
 export type OmitNever<T extends object> = Pick<T, NonNeverKeys<T>>;
 
-// -- Entries Tuple -- //
+// -- UnionToTuple -- //
 
-type Entries<T extends object> = {
-  [K in keyof T]-?: [K, T[K]];
-}[keyof T];
+type UnionToTuple<U, R extends any[] = []> = [U] extends [never]
+  ? R
+  : UnionToTuple<Exclude<U, LastOf<U>>, [LastOf<U>, ...R]>;
+
+type LastOf<U> =
+  UnionToIntersection<U extends any ? () => U : never> extends () => infer L
+    ? L
+    : never;
 
 type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
   x: infer I,
@@ -51,18 +56,12 @@ type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
   ? I
   : never;
 
-type LastOf<U> =
-  UnionToIntersection<U extends any ? () => U : never> extends () => infer L
-    ? L
-    : never;
-
-type UnionToTuple<U, R extends any[] = []> = [U] extends [never]
-  ? R
-  : UnionToTuple<Exclude<U, LastOf<U>>, [LastOf<U>, ...R]>;
-
-export type EntriesTuple<T extends object> = UnionToTuple<Entries<T>>;
+type Entries<T extends object> = {
+  [K in keyof T]-?: [K, T[K]];
+}[keyof T];
 
 // -- Other Tuples -- //
 
+export type EntriesTuple<T extends object> = UnionToTuple<Entries<T>>;
 export type KeyTuple<T extends object> = UnionToTuple<keyof T>;
-export type ValueTuple<T extends object> = UnionToTuple<keyof T[keyof T]>;
+export type ValueTuple<T extends object> = UnionToTuple<T[keyof T]>;

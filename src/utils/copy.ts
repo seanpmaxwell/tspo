@@ -1,5 +1,8 @@
-import isPlainObject, { type Dict } from './isPlainObject.js';
-import { type Mutable } from './utility-types.js';
+import isPlainObject, {
+  type Dict,
+  type PlainObject,
+} from '../isPlainObject.js';
+import { type Mutable } from '../utility-types.js';
 
 const hop = Object.prototype.hasOwnProperty;
 
@@ -8,7 +11,7 @@ const hop = Object.prototype.hasOwnProperty;
  * Arrays are shallow-copied, BUT any array element that is a plain object is deep-cloned.
  * Everything else is shallow-cloned.
  */
-function copy<T>(value: T): Mutable<T> {
+function copy<T extends PlainObject>(value: T): Mutable<T> {
   if (value === null || typeof value !== 'object') return value as Mutable<T>;
   // Arrays: shallow copy, deep-clone plain-object elements
   if (Array.isArray(value)) return cloneArray(value) as unknown as Mutable<T>;

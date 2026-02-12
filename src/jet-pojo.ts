@@ -1,16 +1,18 @@
-import copy from './copy.js';
 import isPlainObject, { type Dict, type PlainObject } from './isPlainObject.js';
-import iterate from './iterate.js';
 import type {
   EntriesTuple,
   KeysParam,
   KeyTuple,
   KeyUnion,
+  Mutable,
   OmitKeys,
   PickKeys,
   SetToNever,
   ValueTuple,
 } from './utility-types.js';
+import compare from './utils/compare.js';
+import copy from './utils/copy.js';
+import iterate from './utils/iterate.js';
 
 /******************************************************************************
                                        Types                                    
@@ -20,6 +22,8 @@ import type {
 type CollapseType<T> = {
   -readonly [K in keyof T]: T[K];
 } & {};
+
+// export type Merge<A, B> = CollapseType<Omit<A, keyof B> & B>;
 
 /******************************************************************************
                                      Functions                                    
@@ -65,8 +69,19 @@ function pick<T extends PlainObject, K extends KeysParam<T>>(
 function merge<T extends PlainObject, U extends PlainObject>(
   a: T,
   b: U,
-): CollapseType<T & U> {
+): CollapseType<Mutable<Omit<T, keyof T> & U>> {
   return { ...a, ...b };
+}
+
+/**
+ * Fill the missing entries in a partial, will the values from a 'defaults'
+ * object.
+ */
+function fill<T extends object>(
+  defaults: Mutable<T>,
+  partial?: Partial<Mutable<T>> | null,
+): CollapseType<Mutable<T>> {
+  return { ...defaults, ...(partial ?? {}) };
 }
 
 /**
@@ -108,14 +123,17 @@ function remove<T extends PlainObject, K extends KeysParam<T>>(
 /**
  * Get a value on an object and return 'undefined' if not found.
  */
-function index<T extends object>(obj: T, key: string): T[keyof T] | undefined {
+function index<T extends object>(
+  obj: T,
+  key: string | number,
+): T[keyof T] | undefined {
   return (obj as Dict)[key] as T[keyof T] | undefined;
 }
 
 /**
  * Get a value on an object and return 'undefined' if not found.
  */
-function safeIndex<T extends object>(obj: T, key: string): T[keyof T] {
+function safeIndex<T extends object>(obj: T, key: string | number): T[keyof T] {
   if (key in obj) {
     return (obj as Dict)[key] as T[keyof T];
   } else {
@@ -155,14 +173,6 @@ function safeReverseIndex<T extends object>(obj: T, value: unknown): keyof T {
     );
   }
   return retVal[0];
-}
-
-/**
- * Fill the missing entries in a partial, will the values from a 'defaults'
- * object.
- */
-function fill<T extends object>(defaults: T, partial?: Partial<T> | null): T {
-  return { ...defaults, ...(partial ?? {}) };
 }
 
 /**
@@ -221,10 +231,10 @@ function firstEntry<T extends object, K extends keyof T>(obj: T): [K, T[K]] {
 ******************************************************************************/
 
 export default {
-  is: isPlainObject,
   omit,
   pick,
   merge,
+  fill,
   append,
   appendOne,
   index,
@@ -232,13 +242,14 @@ export default {
   safeIndex,
   reverseIndex,
   safeReverseIndex,
+  is: isPlainObject,
   isKey,
   isValue,
   keys,
   values,
   entries,
   firstEntry,
-  fill,
   iterate,
   copy,
+  compare,
 } as const;
