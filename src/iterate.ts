@@ -1,11 +1,11 @@
-import isPlainObject, { POJO } from './isPlainObject.js';
+import isPlainObject, { type PlainObject } from './isPlainObject.js';
 
 /******************************************************************************
                                      Types                                    
 ******************************************************************************/
 
 type Path = readonly (string | number)[];
-type IterateParent = POJO | unknown[];
+type IterateParent = PlainObject | unknown[];
 type IterateKey = string | number;
 
 // Callback for the iterate function
@@ -28,7 +28,7 @@ type IterateCb = (args: {
  * - Fires callback for every non-descended value.
  */
 function iterate(root: unknown, cb: IterateCb): void {
-  if (!isPlainObject(root) && !Array.isArray(root)) return;
+  if (!isPlainObject(root)) return;
   iterateHelper(root, [], cb);
 }
 
@@ -41,17 +41,20 @@ function iterateHelper(
   path: (string | number)[],
   cb: IterateCb,
 ): void {
+  // Walk array
   if (Array.isArray(node)) {
+    let i = 0;
     for (const [key, value] of node.entries()) {
       if (isPlainObject(value) || Array.isArray(value)) {
-        iterateHelper(value, [...path, key], cb);
+        iterateHelper(value, [...path, key, i], cb);
       } else {
         cb({ parent: node, key, value, path });
       }
+      i++;
     }
     return;
   }
-
+  // Walk
   for (const [key, value] of Object.entries(node)) {
     if (isPlainObject(value) || Array.isArray(value)) {
       iterateHelper(value, [...path, key], cb);

@@ -1,7 +1,7 @@
 import copy from './copy.js';
-import isPlainObject, { Dict, POJO } from './isPlainObject.js';
+import isPlainObject, { type Dict, type PlainObject } from './isPlainObject.js';
 import iterate from './iterate.js';
-import {
+import type {
   EntriesTuple,
   KeysParam,
   KeyTuple,
@@ -17,11 +17,8 @@ import {
 ******************************************************************************/
 
 // Must be defined in the file it is used in
-type CollapseType<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
-
-// Must be defined in the file it is used in
-type CollapseTypeAlt<T> = {
-  [K in keyof T]: T[K];
+type CollapseType<T> = {
+  -readonly [K in keyof T]: T[K];
 } & {};
 
 /******************************************************************************
@@ -31,7 +28,7 @@ type CollapseTypeAlt<T> = {
 /**
  * Return a new object by excluding certains keys from an object.
  */
-function omit<T extends POJO, K extends KeysParam<T>>(
+function omit<T extends PlainObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): CollapseType<OmitKeys<T, K>> {
@@ -48,7 +45,7 @@ function omit<T extends POJO, K extends KeysParam<T>>(
 /**
  * Return a new object by selecting a specific set of keys on an object.
  */
-function pick<T extends POJO, K extends KeysParam<T>>(
+function pick<T extends PlainObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): CollapseType<PickKeys<T, K>> {
@@ -65,10 +62,10 @@ function pick<T extends POJO, K extends KeysParam<T>>(
 /**
  * Merge two object together and return a new type.
  */
-function merge<T extends POJO, U extends POJO>(
+function merge<T extends PlainObject, U extends PlainObject>(
   a: T,
   b: U,
-): CollapseTypeAlt<T & U> {
+): CollapseType<T & U> {
   return { ...a, ...b };
 }
 
@@ -76,10 +73,10 @@ function merge<T extends POJO, U extends POJO>(
  * Append one object to another, modifying the reference to the original
  * object.
  */
-function append<T extends POJO, U extends POJO>(
+function append<T extends PlainObject, U extends PlainObject>(
   obj: T,
   addOn: U,
-): asserts obj is CollapseTypeAlt<T & U> {
+): asserts obj is CollapseType<T & U> {
   for (const key in addOn) {
     (obj as Dict)[key] = (addOn as Dict)[key];
   }
@@ -88,20 +85,20 @@ function append<T extends POJO, U extends POJO>(
 /**
  * Append a single entry to an object.
  */
-function appendOne<T extends POJO, K extends string, V>(
+function appendOne<T extends PlainObject, K extends string, V>(
   obj: T,
   entry: [K, V],
-): asserts obj is CollapseTypeAlt<T & Record<K, V>> {
+): asserts obj is CollapseType<T & Record<K, V>> {
   (obj as Dict)[entry[0]] = entry[1];
 }
 
 /**
  * Remove keys from an object and set the type to 'never'.
  */
-function remove<T extends POJO, K extends KeysParam<T>>(
+function remove<T extends PlainObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
-): asserts obj is CollapseTypeAlt<SetToNever<T, KeyUnion<T, K>>> {
+): asserts obj is CollapseType<SetToNever<T, KeyUnion<T, K>>> {
   const keyArr = Array.isArray(keys) ? keys : [keys];
   for (const key of keyArr) {
     delete (obj as Dict)[key];

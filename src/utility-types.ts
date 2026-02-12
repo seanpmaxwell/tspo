@@ -37,7 +37,7 @@ type NonNeverKeys<T extends object> = {
 }[keyof T];
 
 // Pick only entries whose values are not `never`
-export type OmitRemoved<T extends object> = Pick<T, NonNeverKeys<T>>;
+export type OmitNever<T extends object> = Pick<T, NonNeverKeys<T>>;
 
 // -- Entries Tuple -- //
 

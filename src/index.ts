@@ -1,6 +1,6 @@
-import { POJO } from './isPlainObject.js';
+import { type PlainObject } from './isPlainObject.js';
 import pojo from './jet-pojo.js';
-import { KeysParam, KeyUnion, SetToNever } from './utility-types.js';
+import type { KeysParam, KeyUnion, SetToNever } from './utility-types.js';
 
 /******************************************************************************
                                    Types                                  
@@ -9,25 +9,25 @@ import { KeysParam, KeyUnion, SetToNever } from './utility-types.js';
 // Must be defined in the file it is used in
 // type CollapseType<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 
-type CollapseTypeAlt<T> = {
+type CollapseType<T> = {
   [K in keyof T]: T[K];
 } & {};
 
 // 'asserts' requires explicity type-definition
-type Append = <T extends POJO, U extends POJO>(
+type Append = <T extends PlainObject, U extends PlainObject>(
   obj: T,
   addOn: U,
-) => asserts obj is CollapseTypeAlt<T & U>;
+) => asserts obj is CollapseType<T & U>;
 
-type AppendOne = <T extends POJO, K extends string, V>(
+type AppendOne = <T extends PlainObject, K extends string, V>(
   obj: T,
   entry: [K, V],
-) => asserts obj is CollapseTypeAlt<T & Record<K, V>>;
+) => asserts obj is CollapseType<T & Record<K, V>>;
 
-type Remove = <T extends POJO, K extends KeysParam<T>>(
+type Remove = <T extends PlainObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
-) => asserts obj is CollapseTypeAlt<SetToNever<T, KeyUnion<T, K>>>;
+) => asserts obj is CollapseType<SetToNever<T, KeyUnion<T, K>>>;
 
 /******************************************************************************
                                    Export                                  
@@ -39,5 +39,5 @@ const typedPO: Readonly<typeof pojo> & {
   remove: Remove;
 } = pojo;
 
-export { OmitRemoved } from './utility-types.js';
+export { type OmitNever } from './utility-types.js';
 export default typedPO;

@@ -10,7 +10,7 @@ const objectProto = Object.prototype;
 
 // Basic Types
 export type Dict = Record<string, unknown>;
-export type POJO = NonNullable<object>;
+export type PlainObject = NonNullable<object>;
 
 /******************************************************************************
                                      Functions                                    
@@ -19,7 +19,7 @@ export type POJO = NonNullable<object>;
 /**
  * Check if a 'unknown' is a 'PlainObject.
  */
-function isPlainObject(arg: unknown): arg is POJO {
+function isPlainObject(arg: unknown): arg is PlainObject {
   if (typeof arg !== 'object' || arg === null) {
     return false;
   }

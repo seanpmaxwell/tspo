@@ -1,33 +1,33 @@
-# jet-pojo
+# jet-pojo ✈️
 
-`jet-pojo` is a TypeScript-first utility library for working with plain JavaScript objects while keeping runtime behavior and static types aligned.
+[![npm](https://img.shields.io/npm/v/jet-pojo?label=npm&color=0ea5e9)](https://www.npmjs.com/package/jet-pojo)
+[![downloads](https://img.shields.io/npm/dm/jet-pojo?label=downloads&color=38bdf8)](https://www.npmjs.com/package/jet-pojo)
+[![types](https://img.shields.io/npm/types/jet-pojo?label=types&color=22c55e)](https://www.npmjs.com/package/jet-pojo)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/jet-pojo?label=bundle&color=0f172a)](https://bundlephobia.com/package/jet-pojo)
+[![license](https://img.shields.io/npm/l/jet-pojo?label=license&color=334155)](LICENSE)
 
-It provides a focused set of object helpers (`omit`, `pick`, `merge`, `append`, `remove`, `index`, `iterate`, `copy`, and more) designed for codebases that care about:
+> `jet-pojo` is a TypeScript-first utility library for working with plain JavaScript objects while keeping runtime behavior and static types aligned.
 
-- predictable object transforms,
-- type-safe mutation workflows,
-- and minimal type assertions in application code.
+## 🤔 What counts as a POJO?
 
-## What counts as a POJO?
+A _plain-old-javascript-object (POJO or pojo)_ is any object which inherits directly from the base `Object` class and no other or is created through `Object.create(null)`
 
-A **plain-old-javascript-object (P.O.J.O or pojo)** is any object which inherits directly from the base `Object` class and no other or is created through `Object.create(null)`
-
-3 ways:
+3 ways to create:
 
 - **object-literals:** (most-common), i.e `{ id: 1, name: 'john' }`
 - **Object constructor:**: `new Object()`
 - **null-prototype objects:** `Object.create(null)`
 
-> _object-literals_ and _instances of Object_ will inherit from the base _Object_ class; hence, they can use methods like `.hasOwnProperty`. _null-prototype objects_ inherit from nothing so cannot use any built-in objects.
+> _object-literals_ and _instances of Object_ will inherit from the base _Object_ class; hence, they can use methods like `.hasOwnProperty`. _null-prototype objects_ inherit from nothing so cannot use these functions.
 
-## Why jet-pojo
+## ❓Why jet-pojo?
 
 - Strong TypeScript inference for both immutable and mutable object updates.
-- Runtime helpers and type-level guarantees in the same API surface.
+- Runtime AND type-level guarantees in the same API surface.
 - Practical mutating helpers (`append`, `appendOne`, `remove`) with assertion-based type refinement.
 - Small, focused utility set centered around plain-object workflows.
 
-## Installation
+## 📦 Installation
 
 ```bash
 npm install jet-pojo
@@ -41,7 +41,7 @@ pnpm add jet-pojo
 yarn add jet-pojo
 ```
 
-## Quick start
+## ⚡ Quick start
 
 ```ts
 import pojo, { OmitRemoved } from 'jet-pojo';
@@ -71,7 +71,7 @@ type SessionWithoutRemoved = OmitRemoved<typeof session>;
 const role = pojo.safeIndex(user, 'role'); // throws if key is missing
 ```
 
-## Mutation model
+## 📚 API Summary
 
 Use this as a quick decision guide:
 
@@ -81,6 +81,7 @@ Use this as a quick decision guide:
 | `omit`             | No            | Returns object without selected keys            |
 | `pick`             | No            | Returns object with selected keys               |
 | `merge`            | No            | Returns `{...a, ...b}`                          |
+| `fill`             | No            | Combines defaults with a partial override       |
 | `append`           | Yes           | Adds keys from `addOn` to `obj`                 |
 | `appendOne`        | Yes           | Adds one `[key, value]` entry                   |
 | `remove`           | Yes           | Deletes keys and refines type to `never`        |
@@ -88,7 +89,6 @@ Use this as a quick decision guide:
 | `safeIndex`        | No            | Lookup that throws on missing key               |
 | `reverseIndex`     | No            | Returns all matching keys for a value           |
 | `safeReverseIndex` | No            | Returns exactly one key or throws               |
-| `fill`             | No            | Combines defaults with a partial override       |
 | `isKey`            | No            | Type guard for existing key                     |
 | `isValue`          | No            | Type guard for existing value                   |
 | `keys`             | No            | Typed `Object.keys` tuple                       |
@@ -98,9 +98,11 @@ Use this as a quick decision guide:
 | `iterate`          | No            | Recursive walker over nested POJOs              |
 | `copy`             | No            | Deep clone utility                              |
 
-## API reference
+## 📖 API reference
 
-### `.is(arg: unknown): arg is PlainObject`
+### Returning new objects
+
+#### `.is(arg: unknown): arg is PlainObject (NonNullable<object>)`
 
 Validator-function for POJOs.
 
@@ -111,7 +113,7 @@ pojo.is([]); // false
 pojo.is(new Date()); // false
 ```
 
-### `.omit(T: object, K: keyof T | Array<keyof T>): Omit<T, K>`
+#### `.omit(T: object, K: keyof T | Array<keyof T>): Omit<T, K>`
 
 Returns a new object excluding one key or an array of keys.
 
@@ -121,7 +123,7 @@ const redacted = pojo.omit({ a: 'a', b: 1, c: false }, ['b', 'c']);
 // Type:  { a: string; }
 ```
 
-### `.pick(T: object, K: keyof T | Array<keyof T>): Pick<T, K>`
+#### `.pick(T: object, K: keyof T | Array<keyof T>): Pick<T, K>`
 
 Returns a new object containing only one key or an array of keys.
 
@@ -131,7 +133,7 @@ const preview = pojo.pick({ a: 'a', b: 1, c: false }, ['a', 'c']);
 // Type:  { a: string; c: boolean }
 ```
 
-### `.merge(T: object, U: object): T & U`
+#### `.merge(T: object, U: object): T & U`
 
 Returns a new object from `{ ...a, ...b }` with merged typing.
 
@@ -141,10 +143,24 @@ const full = pojo.merge({ id: 1 }, { active: true });
 // Type:  { id: number; active: boolean }
 ```
 
-### `.append(T: object, U: object): void`
+#### `.fill(T: object, partial?: Partial<T>): T`
 
-Mutates `T` by copying enumerable keys from `U`.  
-TypeScript narrows `T` to `T & U` after the call.
+Returns a full object `T`, using the first argument as the default, and appending supplied values from an optional partial (second argument).
+
+```ts
+const config = pojo.fill({ retries: 3, timeoutMs: 5000 }, { timeoutMs: 8000 });
+// Value: { retries: 3000, timeoutMs: 8000 }
+// Type:  { retries: number; timeoutMs: number }
+```
+
+### Mutation functions
+
+- Functions which modify the provided object will mutate its type and value.
+- **DO NOT** set a return value from mutation functions or type-updating will not work.
+
+#### `.append(T: object, U: object): void`
+
+Mutates `T` by copying enumerable keys from `U`. TypeScript narrows `T` to `T & U` after the call.
 
 ```ts
 const draft = { id: 1 };
@@ -153,10 +169,9 @@ pojo.append(draft, { name: 'Ada' });
 // Type:  { id: number; name: string }
 ```
 
-### `.appendOne(T: object, entry: [key, value]): void`
+#### `.appendOne(T: object, entry: [key, value]): void`
 
-Mutates `T` by adding a single entry.  
-TypeScript narrows `T` to `T & { key: value }`.
+Mutates `T` by adding a single entry. TypeScript narrows `T` to `T & { key: value }`.
 
 ```ts
 const draft = { id: 1 };
@@ -165,22 +180,24 @@ pojo.appendOne(draft, ['team', 'platform']);
 // Type:  { id: number; team: string }
 ```
 
-### `.remove(T: object, K: keyof T | Array<keyof T>): void`
+#### `.remove(T: object, K: keyof T | Array<keyof T>): void`
 
-Mutates `obj` and deletes one or more keys.  
-Because of TypeScript limitiations, we cannot remove keys in place so we set them to `never`.
-If you want to clean the type after removing, use `OmitRemoved<T>`
+Mutates `T` and deletes one or more keys.  
+Because of TypeScript limitiations, we cannot remove keys in place on `T` so we set them to `never`.
+If you want to clean the type after removing, use `OmitNever<T>`
 
 ```ts
 const draft = { id: 1, email: 'ada@example.com' };
 pojo.remove(draft, 'email');
-type Clean = OmitRemoved<typeof draft>; // strips `never` keys
+type Clean = OmitNever<typeof draft>; // strips `never` keys
 // Value: { id: 1 }
 // Type `draft`: { id: number; email: never }
 // Type `Clean`: { id: number }
 ```
 
-### `.index(T: object, key: string): keyof T | undefined`
+### Indexing
+
+#### `.index(T: object, key: string): keyof T | undefined`
 
 Dynamic key lookup that returns `undefined` when missing.
 
@@ -190,7 +207,7 @@ const value = pojo.index({ a: 'a', b: 1 }, 'a');
 // Type: => 'a' | 1 | undefined
 ```
 
-### `.safeIndex(T: object, key: string): keyof T`
+#### `.safeIndex(T: object, key: string): keyof T`
 
 Dynamic key lookup that _throws_ if the key does not exist.
 
@@ -200,7 +217,7 @@ const value = pojo.safeIndex({ a: 'a', b: 1 }, 'a');
 // Type:  'a' | 1
 ```
 
-### `.reverseIndex(T: object, value: unknown): Array<T[keyof T]>`
+#### `.reverseIndex(T: object, value: unknown): Array<T[keyof T]>`
 
 Returns all keys whose value is strictly equal (`===`) to `value`.
 
@@ -210,7 +227,7 @@ const keys = pojo.reverseIndex({ a: 1, b: 2, c: 1 }, 1);
 // Type (Tuple-type): ['a', 'b', 'c']
 ```
 
-### `.safeReverseIndex(T: object, value: unknown): T[keyof T]`
+#### `.safeReverseIndex(T: object, value: unknown): T[keyof T]`
 
 Returns exactly one matching key for `value`.  
 Throws if zero or multiple keys match.
@@ -221,17 +238,9 @@ const key = pojo.safeReverseIndex({ a: 1, b: 2 }, 2);
 // Type: 'a' | 'b'
 ```
 
-### `.fill(T: object, partial?: Partial<T>): T`
+### Validator functions
 
-Returns a full object `T`, using the first argument as the default, and appending supplied values from an optional partial (second argument).
-
-```ts
-const config = pojo.fill({ retries: 3, timeoutMs: 5000 }, { timeoutMs: 8000 });
-// Value: { retries: 3000, timeoutMs: 8000 }
-// Type:  { retries: number; timeoutMs: number }
-```
-
-### `.isKey(T: object, arg: string): arg is keyof T`
+#### `.isKey(T: object, arg: string): arg is keyof T`
 
 Runtime key existence check and TypeScript key guard.
 
@@ -242,7 +251,7 @@ if (pojo.isKey(user, candidate)) {
 }
 ```
 
-### `.isValue(T: object, arg: unknown): arg is T[keyof T]`
+#### `.isValue(T: object, arg: unknown): arg is T[keyof T]`
 
 Runtime value existence check and TypeScript value guard.
 
@@ -253,7 +262,9 @@ if (pojo.isValue(user, candidate)) {
 }
 ```
 
-### `.keys(T: object): Tuple of keyof T`
+### Collections
+
+#### `.keys(T: object): Tuple of keyof T`
 
 Typed `Object.keys`. Tuple order not guaranteed.
 
@@ -263,7 +274,7 @@ const keys = pojo.keys({ a: 1, b: 2, c: 1 });
 // Type (Tuple-type): ['a', 'b', 'c']
 ```
 
-### `.values(T: object): Tuple of T[keyof T]`
+#### `.values(T: object): Tuple of T[keyof T]`
 
 Typed `Object.values()`. Tuple order not guaranteed.
 
@@ -273,7 +284,7 @@ const allValues = pojo.values({ a: 1, b: 2, c: 1 });
 // Type (Tuple-type): [1, 2, 3]
 ```
 
-### `.entries(T: unknown): Tuple of [keyof T, T[keyof T]]`
+#### `.entries(T: unknown): Tuple of [keyof T, T[keyof T]]`
 
 Typed `Object.entries`. Tuple order not guaranteed.
 
@@ -283,7 +294,7 @@ const allEntries = pojo.entries(user);
 // Type (Tuple-type): [['a', 1], ['b', 2], ['c', 3]]
 ```
 
-### `.firstEntry(arg: object): [keyof T, T[keyof T]]`
+#### `.firstEntry(arg: object): [keyof T, T[keyof T]]`
 
 Returns the first entry by object enumeration order.
 This is useful for when you know your object only has one entry and but you don't know the `key` value.
@@ -294,79 +305,68 @@ const [key, value] = pojo.firstEntry({ id: 1, name: 'Ada' });
 // Type: ["id", number]
 ```
 
-### `.iterate(root: object | array, cb: (argument) => void): void`
+### Utilities
 
-Recursively walks nested POJOs and arrays and calls `callback` for every leaf
-that is neither a POJO nor an array.
+#### `.iterate(root: object | array, cb: IterateCb): void`
 
-Callback arguments:
+Recursively iterates a plain-object (and any nested plain-objects/arrays) and fires a callback for every key that is neither a plain-object/array.
 
-- `parent`: object or array containing the current leaf
-- `key`: key/index on `parent`
-- `value`: leaf value
-- `path`: path to `parent` from root
+`IterateCb: (arg: ArgumentObject) => void`:
+
+`ArgumentObject`:
+
+- `parent (PlainObject | Array)`: object or array containing the current leaf
+- `key (string | number)`: key/index on `parent`
+- `value (unknown)`: entry value
+- `path (Array<string | number>)`: path to `parent` from root
 
 ```ts
 pojo.iterate(
   {
-    user: { id: 1, name: 'Ada' },
-    flags: ['staff'],
+    user: { id: 1, name: 'Ada' }, // `user` will be entered
+    flags: ['staff'], // `flags` will be entered
+    foo: new Set(), // `foo` will not be entered and fire a callback
   },
   ({ key, value, path }) => {
     // fires for:
     // user.id   -> path: ['user']
     // user.name -> path: ['user']
     // flags[0]  -> path: ['flags']
+    // foo       -> path: []
     console.log(path, key, value);
   },
 );
 ```
 
-### `.copy(value)`
+#### `.copy(T: object): T`
 
-Recursively clones an object **BUT** only plain-objects and arrays will be deep-cloned. All other nested-objects will only be shallow-cloned. This can be much faster than `structuredClone` when you know you don't need deep-cloning for anything other plain-objects/arrays.
+Recursively clones a plain-object **BUT** only plain-objects and arrays will be stepped into. All other nested-objects (i.e. `Date/Set/Map`) will only be _shallow-cloned_. This is much faster than `structuredClone` so is recommended for cloning when you know you don't need deep-cloning for anything other than plain-objects/arrays.
 
 ```ts
 const snapshot = pojo.clone({
   id: 1,
-  birthdate: new Date(), // 'birthdate' -> shallow-cloned
+  birthdate: new Date(), // `birthdate` -> shallow-cloned
   address: {
-    // 'address' -> deep-cloned
+    // `address` -> deep-cloned
     street: '123 fake st',
     city: 'seattle',
+    country: {
+      name: 'USA',
+      code: 1,
+    },
   },
   jobHistory: [
-    // 'jobHistory' -> deep-cloned
+    // `jobHistory` -> deep-cloned
     'janitor',
     {
-      // 'jobHistory[1]' -> deep-cloned
       company: 'Lowes',
       role: 'sales associate',
-      otherRoles: new Set(['janitory', 'cashier']), // -> shallow-cloned
+      otherRoles: new Set(['fork-lift driver', 'cashier']), // -> `otherRoles` shallow-cloned
     },
   ],
 });
 ```
 
-## Exported types
+## 📄 License
 
-### `OmitRemoved<T>`
-
-Utility type exported from package root.  
-Useful after calling `pojo.remove`, where removed keys become `never`.
-
-```ts
-import pojo, { OmitRemoved } from 'jet-pojo';
-
-const data = { id: 1, secret: 'x' };
-pojo.remove(data, 'secret');
-
-type PublicData = OmitRemoved<typeof data>; // { id: number }
-```
-
-## Notes
-
-- `safeIndex` and `safeReverseIndex` throw runtime errors on invalid assumptions.
-- Matching in `reverseIndex` and `safeReverseIndex` uses strict equality (`===`).
-- `firstEntry` assumes a non-empty object at runtime.
-- `clone` does not include circular reference handling.
+MIT © [seanpmaxwell1](LICENSE)

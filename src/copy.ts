@@ -1,5 +1,5 @@
-import isPlainObject, { Dict } from './isPlainObject.js';
-import { Mutable } from './utility-types.js';
+import isPlainObject, { type Dict } from './isPlainObject.js';
+import { type Mutable } from './utility-types.js';
 
 const hop = Object.prototype.hasOwnProperty;
 
