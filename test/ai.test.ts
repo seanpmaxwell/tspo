@@ -697,48 +697,61 @@ describe('tspo.iterate', () => {
   });
 
   test('should recurse into nested plain objects', () => {
+    const root = { a: { b: 1, c: { d: 2 } } };
     const seen: Array<{
       path: readonly (string | number)[];
       key: string | number;
       value: unknown;
     }> = [];
 
-    tspo.iterate({ a: { b: 1, c: { d: 2 } } }, ({ path, key, value }) => {
+    tspo.iterate(root, ({ path, key, value }) => {
       seen.push({ path: [...path], key, value });
     });
 
     expect(seen).toEqual([
+      { path: [], key: 'a', value: root.a },
       { path: ['a'], key: 'b', value: 1 },
+      { path: ['a'], key: 'c', value: root.a.c },
       { path: ['a', 'c'], key: 'd', value: 2 },
     ]);
   });
 
   test('should recurse into arrays nested inside plain objects', () => {
+    const root = { arr: [1, { x: 2 }] };
     const seen: Array<{
       path: readonly (string | number)[];
       key: string | number;
       value: unknown;
     }> = [];
 
-    tspo.iterate({ arr: [1, { x: 2 }] }, ({ path, key, value }) => {
+    tspo.iterate(root, ({ path, key, value }) => {
       seen.push({ path: [...path], key, value });
     });
 
     expect(seen).toEqual([
+      { path: [], key: 'arr', value: root.arr },
       { path: ['arr'], key: 0, value: 1 },
-      { path: ['arr', 1, 1], key: 'x', value: 2 },
+      { path: ['arr'], key: 1, value: root.arr[1] },
+      { path: ['arr', 1], key: 'x', value: 2 },
     ]);
   });
 
   test('should recurse into nested Object.create(null) objects', () => {
     const bare = Object.create(null) as Record<string, unknown>;
     bare.leaf = 42;
+    const root = { bare };
 
     const cb = vi.fn();
-    tspo.iterate({ bare }, cb);
+    tspo.iterate(root, cb);
 
-    expect(cb).toHaveBeenCalledTimes(1);
-    expect(cb).toHaveBeenCalledWith({
+    expect(cb).toHaveBeenCalledTimes(2);
+    expect(cb).toHaveBeenNthCalledWith(1, {
+      parent: root,
+      key: 'bare',
+      value: bare,
+      path: [],
+    });
+    expect(cb).toHaveBeenNthCalledWith(2, {
       parent: bare,
       key: 'leaf',
       value: 42,
@@ -768,7 +781,11 @@ describe('tspo.iterate', () => {
       seen.push({ path: [...path], key });
     });
 
-    expect(seen).toEqual([{ path: ['a', 'b'], key: 'c' }]);
+    expect(seen).toEqual([
+      { path: [], key: 'a' },
+      { path: ['a'], key: 'b' },
+      { path: ['a', 'b'], key: 'c' },
+    ]);
   });
 
   test('should pass the actual parent reference to callback', () => {
@@ -875,6 +892,33 @@ describe('tspo.copy', () => {
     expect([...out.set][0]).toBe(memberRef);
   });
 
+  test('should deep-clone nested Map and Set values when deepCloneAll is true', () => {
+    const keyRef = { id: 1 };
+    const valueRef = { profile: { name: 'Ada' } };
+    const memberRef = { role: { level: 1 } };
+
+    const src = {
+      map: new Map([[keyRef, valueRef]]),
+      set: new Set([memberRef]),
+    };
+    const out = tspo.copy(src, { deepCloneAll: true });
+
+    const outKey = [...out.map.keys()][0] as typeof keyRef;
+    const outValue = [...out.map.values()][0] as typeof valueRef;
+    const outMember = [...out.set][0] as typeof memberRef;
+
+    expect(out.map).not.toBe(src.map);
+    expect(out.set).not.toBe(src.set);
+    expect(outKey).not.toBe(keyRef);
+    expect(outValue).not.toBe(valueRef);
+    expect(outValue.profile).not.toBe(valueRef.profile);
+    expect(outMember).not.toBe(memberRef);
+    expect(outMember.role).not.toBe(memberRef.role);
+    expect(outKey).toEqual(keyRef);
+    expect(outValue).toEqual(valueRef);
+    expect(outMember).toEqual(memberRef);
+  });
+
   test('should clone nested RegExp and preserve source/flags/lastIndex', () => {
     const re = /ab/gi;
     re.lastIndex = 2;
@@ -930,6 +974,41 @@ describe('tspo.copy', () => {
     expect(out.user instanceof User).toBe(true);
     expect(Object.getPrototypeOf(out.user)).toBe(User.prototype);
     expect(out.user.meta).toBe(user.meta);
+  });
+
+  test('should deep-clone nested class instance props when deepCloneAll is true', () => {
+    class User {
+      constructor(
+        public name: string,
+        public meta: { level: number; tags: string[] },
+      ) {}
+    }
+    const user = new User('Ada', { level: 1, tags: ['staff'] });
+
+    const src = { user };
+    const out = tspo.copy(src, { deepCloneAll: true });
+
+    expect(out.user).not.toBe(user);
+    expect(out.user instanceof User).toBe(true);
+    expect(Object.getPrototypeOf(out.user)).toBe(User.prototype);
+    expect(out.user.meta).not.toBe(user.meta);
+    expect(out.user.meta.tags).not.toBe(user.meta.tags);
+    expect(out.user).toEqual(user);
+  });
+
+  test('should combine deepCloneAll and resetDates for non-plain branches', () => {
+    const srcDate = new Date('2024-01-01T00:00:00.000Z');
+    const src = {
+      map: new Map([['createdAt', srcDate]]),
+    };
+    const before = Date.now();
+    const out = tspo.copy(src, { deepCloneAll: true, resetDates: true });
+    const after = Date.now();
+
+    const outDate = out.map.get('createdAt') as Date;
+    expect(outDate).not.toBe(srcDate);
+    expect(outDate.getTime()).toBeGreaterThanOrEqual(before);
+    expect(outDate.getTime()).toBeLessThanOrEqual(after);
   });
 
   test('should keep nested function references unchanged', () => {

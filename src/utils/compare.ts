@@ -33,14 +33,18 @@ function compare(a: PlainObject, b: PlainObject): boolean {
  * Compare plain-objects.
  */
 function comparePlainObjects(a: PlainObject, b: PlainObject): boolean {
-  const aKeys = Object.keys(a),
-    bKeys = Object.keys(b);
-  if (aKeys.length !== bKeys.length) return false;
-  for (const key of aKeys) {
+  let aSize = 0;
+  for (const key in a) {
+    if (!hop.call(a, key)) continue;
+    aSize++;
     if (!hop.call(b, key)) return false;
     if (!compareValue((a as Dict)[key], (b as Dict)[key])) return false;
   }
-  return true;
+  let bSize = 0;
+  for (const key in b) {
+    if (hop.call(b, key)) bSize++;
+  }
+  return aSize === bSize;
 }
 
 /**

@@ -7,6 +7,7 @@ import isPlainObject, { type PlainObject } from '../isPlainObject.js';
 type Path = readonly (string | number)[];
 type IterateParent = PlainObject | unknown[];
 type IterateKey = string | number;
+const hop = Object.prototype.hasOwnProperty;
 
 // Callback for the iterate function
 type IterateCb = (args: {
@@ -22,10 +23,10 @@ type IterateCb = (args: {
 
 /**
  * Recursively walks plain-objects and arrays, and calls a callback for
- * every key whose value is neither a plain-object nor an array.
+ * every key before descending into nested values.
  *
  * - Descends into a value if it is a plain-object or array.
- * - Fires callback for every non-descended value.
+ * - Fires callback for every entry (including plain-objects/arrays).
  */
 function iterate(root: unknown, cb: IterateCb): void {
   if (!isPlainObject(root)) return;
@@ -43,25 +44,33 @@ function iterateHelper(
 ): void {
   // Walk array
   if (Array.isArray(node)) {
-    let i = 0;
-    for (const [key, value] of node.entries()) {
+    for (let i = 0; i < node.length; i++) {
+      const value = node[i];
+      cb({ parent: node, key: i, value, path: copyPath(path) });
       if (isPlainObject(value) || Array.isArray(value)) {
-        iterateHelper(value, [...path, key, i], cb);
-      } else {
-        cb({ parent: node, key, value, path });
+        path.push(i);
+        iterateHelper(value, path, cb);
+        path.pop();
       }
-      i++;
     }
     return;
   }
   // Walk
-  for (const [key, value] of Object.entries(node)) {
+  const dict = node as Record<string, unknown>;
+  for (const key in dict) {
+    if (!hop.call(dict, key)) continue;
+    const value = dict[key];
+    cb({ parent: dict, key, value, path: copyPath(path) });
     if (isPlainObject(value) || Array.isArray(value)) {
-      iterateHelper(value, [...path, key], cb);
-    } else {
-      cb({ parent: node, key, value, path });
+      path.push(key);
+      iterateHelper(value, path, cb);
+      path.pop();
     }
   }
+}
+
+function copyPath(path: (string | number)[]): Path {
+  return path.slice();
 }
 
 /******************************************************************************

@@ -18,12 +18,14 @@ export type PickKeys<T extends object, K extends KeysParam<T>> = Pick<
   KeyUnion<T, K>
 >;
 
-// ---------------------------- Complex-Utilities -------------------------- //
+// Get a union of the entries
+export type Entry<T extends object> = T extends object
+  ? {
+      [K in keyof T]-?: [K, T[K]];
+    }[keyof T]
+  : never;
 
-// Remove "readonly" for a type
-export type Mutable<T> = {
-  -readonly [K in keyof T]: T[K];
-};
+// ---------------------------- Complex-Utilities -------------------------- //
 
 // -- Set/Remove 'never' keys -- //
 

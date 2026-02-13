@@ -1,4 +1,4 @@
-# tspo ✈️
+# 🟦 tspo
 
 [![npm](https://img.shields.io/npm/v/tspo?label=npm&color=0ea5e9)](https://www.npmjs.com/package/tspo)
 [![downloads](https://img.shields.io/npm/dm/tspo?label=downloads&color=38bdf8)](https://www.npmjs.com/package/tspo)
@@ -7,6 +7,10 @@
 [![license](https://img.shields.io/npm/l/tspo?label=license&color=334155)](LICENSE)
 
 > `tspo (TypeScript Plain Object)` is a collection of utilities for handling both runtime and compile-time behavior for plain-objects.
+
+<p align="center">
+  <img src="./screenshot.png" alt="tspo screenshot" />
+</p>
 
 ## 🤔 What is a plain-object?
 
@@ -391,30 +395,32 @@ const [key, value] = tspo.firstEntry({ id: 1, name: 'Ada' });
 
 <a id="iterate"></a>
 
-#### `.iterate(root: object | array, cb: IterateCb): void`
+#### `.iterate(root: object | array, cb: "See Callback below"): void`
 
-Recursively iterates a plain-object (and any nested plain-objects/arrays) and fires a callback for every key that is neither a plain-object nor an array.
+Recursively iterates a plain-object (and any nested plain-objects/arrays) and fires a callback for every key before descending.
 
-`IterateCb: (arg: ArgumentObject) => void`:
+`Callback, (arg: { ...parameters }) => void`:
 
-`ArgumentObject`:
-
-- `parent (PlainObject | Array)`: object or array containing the current leaf
-- `key (string | number)`: key/index on `parent`
-- `value (unknown)`: entry value
-- `path (Array<string | number>)`: path to `parent` from root
+| Parameter | Type                      | Description                                  |
+| --------- | ------------------------- | -------------------------------------------- |
+| `parent`  | `PlainObject \| Array`    | Object or array containing the current entry |
+| `key`     | `string \| number`        | Key/index on `parent`                        |
+| `value`   | `unknown`                 | Entry value                                  |
+| `path`    | `Array<string \| number>` | Path to `parent` from root                   |
 
 ```ts
 tspo.iterate(
   {
-    user: { id: 1, name: 'Ada' }, // `user` will be entered
-    flags: ['staff'], // `flags` will be entered
-    foo: new Set(), // `foo` will not be entered and fire a callback
+    user: { id: 1, name: 'Ada' }, // callback fires, then recursion enters `user`
+    flags: ['staff'], // callback fires, then recursion enters `flags`
+    foo: new Set(), // callback fires (non-recursive leaf)
   },
   ({ key, value, path }) => {
     // fires for:
+    // user      -> path: []
     // user.id   -> path: ['user']
     // user.name -> path: ['user']
+    // flags     -> path: []
     // flags[0]  -> path: ['flags']
     // foo       -> path: []
     console.log(path, key, value);
@@ -424,15 +430,20 @@ tspo.iterate(
 
 <a id="copy"></a>
 
-#### `.copy(T: PlainObject, options?: { resetDates?: boolean }): T`
+#### `.copy(T: PlainObject, options?: "See Options Table Below"): T`
 
-Copies a plain-object value but recursion only steps into nested plain-objects and arrays:
+Copies a plain-object value. By default recursion only steps into nested plain-objects and arrays:
 
 - primitives/functions copied by value
 - Nested `Date` values are copied by epoch (default behavior)
-- `resetDates` resets all nested `Date` values to current time (`new Date()`)
-- Nested objects other than plain-objects/arrays (i.e. `Set/Map`) are _shallow-cloned_.
-- `.copy` is much faster than `structuredClone`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
+- By default, nested objects other than plain-objects/arrays (i.e. `Set/Map`) are only _shallow-cloned_.
+
+| Option         | Type      | Default | Description                                          |
+| -------------- | --------- | ------- | ---------------------------------------------------- |
+| `resetDates`   | `boolean` | `false` | Resets all nested `Date` values to the current time. |
+| `deepCloneAll` | `boolean` | `false` | Deep-clones all nested object values.                |
+
+> `.copy` is much faster than `structuredClone` with `deepCloneAll: false`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
 
 ```ts
 const snapshot = tspo.copy({
@@ -459,14 +470,6 @@ const snapshot = tspo.copy({
 });
 ```
 
-```ts
-const redacted = tspo.copy(
-  { createdAt: new Date('2024-01-01T00:00:00.000Z') },
-  { resetDates: true },
-);
-// redacted.createdAt -> new Date() (time of copy call)
-```
-
 <a id="compare"></a>
 
 #### `.compare(T: object, U: object): boolean`
@@ -475,7 +478,8 @@ Recursively compares 2 plain-objects but only arrays and plain-objects will be s
 
 - `Date` objects will be compared by the epoch
 - Nested objects, other than arrays/plain-objects, will be compared by reference.
-- `.copy` isn't recommended if you have nested objects other than plain-objects, arrays, or Dates. Works great for the vast majority of real-world comparisons thought.
+
+> `.compare` isn't recommended if you have nested objects other than plain-objects/arrays/Dates. Works great for the vast majority of real-world comparisons though.
 
 ```ts
 const currentDate = new Date();
@@ -484,21 +488,18 @@ const jobs2 = new Set(['janitor']);
 
 const user = {
   id: 1,
-  name: 'joe',
   birthdate: currentDate,
   jobs: jobs,
 };
 
 const user2 = {
   id: 1,
-  name: 'joe',
   birthdate: currentDate,
   jobs: jobs,
 };
 
 const user3 = {
   id: 1,
-  name: 'joe',
   birthdate: currentDate,
   jobs: jobs2,
 };

@@ -2,10 +2,10 @@ import isPlainObject, { type Dict, type PlainObject } from './isPlainObject.js';
 import type {
   DeepWiden,
   EntriesTuple,
+  Entry,
   KeysParam,
   KeyTuple,
   KeyUnion,
-  Mutable,
   OmitKeys,
   PickKeys,
   SetToNever,
@@ -24,6 +24,8 @@ type CollapseType<T> = {
   -readonly [K in keyof T]: T[K];
 } & {};
 
+const hop = Object.prototype.hasOwnProperty;
+
 /******************************************************************************
                                      Functions                                    
 ******************************************************************************/
@@ -35,11 +37,21 @@ function omit<T extends PlainObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): CollapseType<OmitKeys<T, K>> {
-  const retVal: Dict = {},
-    set = new Set(Array.isArray(keys) ? keys : [keys]);
+  const retVal: Dict = {};
+  const dict = obj as Dict;
+  if (Array.isArray(keys)) {
+    const set = new Set(keys as readonly PropertyKey[]);
+    for (const key in obj) {
+      if (!set.has(key)) {
+        retVal[key] = dict[key];
+      }
+    }
+    return retVal as CollapseType<OmitKeys<T, K>>;
+  }
+  const omittedKey = keys as PropertyKey;
   for (const key in obj) {
-    if (!set.has(key)) {
-      retVal[key] = (obj as Dict)[key];
+    if (key !== omittedKey) {
+      retVal[key] = dict[key];
     }
   }
   return retVal as CollapseType<OmitKeys<T, K>>;
@@ -52,11 +64,21 @@ function pick<T extends PlainObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): CollapseType<PickKeys<T, K>> {
-  const retVal: Dict = {},
-    set = new Set(Array.isArray(keys) ? keys : [keys]);
+  const retVal: Dict = {};
+  const dict = obj as Dict;
+  if (Array.isArray(keys)) {
+    const set = new Set(keys as readonly PropertyKey[]);
+    for (const key in obj) {
+      if (set.has(key)) {
+        retVal[key] = dict[key];
+      }
+    }
+    return retVal as CollapseType<PickKeys<T, K>>;
+  }
+  const pickedKey = keys as PropertyKey;
   for (const key in obj) {
-    if (set.has(key)) {
-      retVal[key] = (obj as Dict)[key];
+    if (key === pickedKey) {
+      retVal[key] = dict[key];
     }
   }
   return retVal as CollapseType<PickKeys<T, K>>;
@@ -68,7 +90,7 @@ function pick<T extends PlainObject, K extends KeysParam<T>>(
 function merge<T extends PlainObject, U extends PlainObject>(
   a: T,
   b: U,
-): CollapseType<Mutable<Omit<T, keyof U> & U>> {
+): CollapseType<Omit<T, keyof U> & U> {
   return { ...a, ...b };
 }
 
@@ -79,8 +101,8 @@ function merge<T extends PlainObject, U extends PlainObject>(
 function fill<const T extends object>(
   defaults: T,
   partial?: Partial<DeepWiden<T>>,
-): CollapseType<Mutable<DeepWiden<T>>> {
-  return { ...defaults, ...(partial ?? {}) } as Mutable<DeepWiden<T>>;
+): CollapseType<DeepWiden<T>> {
+  return { ...defaults, ...(partial ?? {}) } as DeepWiden<T>;
 }
 
 /**
@@ -159,19 +181,27 @@ function reverseIndex<T extends object>(obj: T, value: unknown): (keyof T)[] {
  * Get a key for a value only if you know the value is unique.
  */
 function safeReverseIndex<T extends object>(obj: T, value: unknown): keyof T {
-  const retVal = [];
+  let found = false;
+  let retVal!: keyof T;
   for (const key in obj) {
     if (obj[key] === value) {
-      retVal.push(key);
+      if (found) {
+        throw new Error(
+          '.safeReverseIndex found 0 or more than 1 keys for value: ' +
+            String(value),
+        );
+      }
+      found = true;
+      retVal = key;
     }
   }
-  if (retVal.length !== 1) {
+  if (!found) {
     throw new Error(
       '.safeReverseIndex found 0 or more than 1 keys for value: ' +
         String(value),
     );
   }
-  return retVal[0];
+  return retVal;
 }
 
 /**
@@ -189,10 +219,22 @@ function isKey<T extends object>(obj: T, arg: PropertyKey): arg is keyof T {
  * Validator function to check
  */
 function isValue<T extends object>(obj: T, arg: unknown): arg is T[keyof T] {
-  const valArr = Array.isArray(arg) ? arg : [arg],
-    valSet = new Set(Object.values(obj));
-  for (const val of valArr) {
-    if (!valSet.has(val)) return false;
+  const dict = obj as Dict;
+  if (!Array.isArray(arg)) {
+    for (const key in obj) {
+      if (hop.call(obj, key) && sameValueZero(dict[key], arg)) return true;
+    }
+    return false;
+  }
+  for (const val of arg) {
+    let found = false;
+    for (const key in obj) {
+      if (hop.call(obj, key) && sameValueZero(dict[key], val)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) return false;
   }
   return true;
 }
@@ -221,8 +263,18 @@ function entries<T extends object>(obj: T): EntriesTuple<T> {
 /**
  * Get a type-safe array of the object e
  */
-function firstEntry<T extends object, K extends keyof T>(obj: T): [K, T[K]] {
-  return Object.entries(obj)[0] as [K, T[K]];
+function firstEntry<T extends object>(obj: T): Entry<T> {
+  const dict = obj as Dict;
+  for (const key in obj) {
+    if (hop.call(obj, key)) {
+      return [key, dict[key]] as unknown as Entry<T>;
+    }
+  }
+  return undefined as unknown as Entry<T>;
+}
+
+function sameValueZero(a: unknown, b: unknown): boolean {
+  return a === b || (a !== a && b !== b);
 }
 
 /**

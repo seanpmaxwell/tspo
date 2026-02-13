@@ -180,6 +180,19 @@ describe('Collections', () => {
     const entries = tspo.firstEntry({ id: 1 });
     expect(entries).toStrictEqual(['id', 1]);
   });
+
+  test('.firstEntry with union object type', () => {
+    type Union = { id: number } | { name: string };
+    const obj: Union = { id: 1 };
+    const entry = tspo.firstEntry(obj);
+    const typed: ['id', number] | ['name', string] = entry;
+    expect(typed).toStrictEqual(['id', 1]);
+
+    const getEntries = (oneEntry: Union) => {
+      const entry = tspo.firstEntry(oneEntry);
+      return entry;
+    };
+  });
 });
 
 // -- Utilities -- //
@@ -240,11 +253,15 @@ describe('Utilities', () => {
     expect(entries).toStrictEqual([
       { key: 'id', value: 1 },
       { key: 'birthdate', value: UserFull.birthdate },
+      { key: 'address', value: UserFull.address },
       { key: 'street', value: '123 fake st' },
       { key: 'city', value: 'seattle' },
+      { key: 'country', value: UserFull.address.country },
       { key: 'name', value: 'USA' },
       { key: 'code', value: 1 },
+      { key: 'jobHistory', value: UserFull.jobHistory },
       { key: 0, value: 'janitor' },
+      { key: 1, value: UserFull.jobHistory[1] },
       { key: 'company', value: 'Lowes' },
       { key: 'role', value: 'sales associate' },
       { key: 'otherRoles', value: UserFull.jobHistory[1].otherRoles },
