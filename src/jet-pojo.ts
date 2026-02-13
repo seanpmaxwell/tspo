@@ -226,6 +226,16 @@ function firstEntry<T extends object, K extends keyof T>(obj: T): [K, T[K]] {
   return Object.entries(obj)[0] as [K, T[K]];
 }
 
+/**
+ * Check if something is a plain
+ */
+function toDict(obj: unknown): Dict {
+  if (!isPlainObject(obj)) {
+    throw new Error('value passed to ".toDict" not a plain-object');
+  }
+  return obj as Dict;
+}
+
 /******************************************************************************
                                        Export                                    
 ******************************************************************************/
@@ -239,6 +249,7 @@ export default {
   appendOne,
   index,
   remove,
+  toDict,
   safeIndex,
   reverseIndex,
   safeReverseIndex,

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import pojo, { type OmitNever } from '../src';
+import pojo, { type Dict, type OmitNever } from '../src';
 
 /******************************************************************************
                                   Dummy Data
@@ -84,6 +84,14 @@ describe('Mutating', () => {
     pojo.remove(user2, 'email');
     type tuser2 = OmitNever<typeof user2>;
     expect(user2).toStrictEqual({ id: User.id, name: User.name });
+  });
+
+  test('.toDict', () => {
+    const draft = { id: 1, email: 'ada@example.com' };
+    const rec = pojo.toDict(draft);
+    rec.horse = 'cow';
+    delete rec.animal;
+    // Type `draft`: Dict (Record<string, unknown>)
   });
 });
 
@@ -174,8 +182,53 @@ describe('Collections', () => {
 
 // -- Utilities -- //
 
+const UserFull = {
+  id: 1,
+  birthdate: new Date(),
+  address: {
+    // `address` -> deep-cloned
+    street: '123 fake st',
+    city: 'seattle',
+    country: {
+      name: 'USA',
+      code: 1,
+    },
+  },
+  jobHistory: [
+    'janitor',
+    {
+      company: 'Lowes',
+      role: 'sales associate',
+      otherRoles: new Set(['fork-lift driver', 'cashier']),
+    },
+  ],
+  sayHello: () => console.log('hello'),
+} as const;
+
 describe('Utilities', () => {
-  describe('.copy', () => {
-    // pick up here
+  test('.copy', () => {
+    const userFullCopy = pojo.copy(UserFull);
+    expect(userFullCopy).toStrictEqual(UserFull);
+    expect(userFullCopy.address).not.toBe(UserFull.address);
+    expect(userFullCopy.jobHistory).not.toBe(UserFull.jobHistory);
+    expect(userFullCopy.jobHistory[1]).not.toBe(UserFull.jobHistory[1]);
+    const setTest = setsAreEqual(
+      userFullCopy.jobHistory[1].otherRoles,
+      UserFull.jobHistory[1].otherRoles,
+    );
+    expect(setTest).toBeTruthy();
   });
+
+  // Codex go here
 });
+
+/**
+ * Test sets for content (not reference equality)
+ */
+function setsAreEqual(setA: Set<string>, setB: Set<string>) {
+  if (setA.size !== setB.size) return false;
+  for (let value of setA) {
+    if (!setB.has(value)) return false;
+  }
+  return true;
+}

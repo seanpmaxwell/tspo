@@ -1,4 +1,4 @@
-import { type PlainObject } from './isPlainObject.js';
+import { type Dict, type PlainObject } from './isPlainObject.js';
 import pojo from './jet-pojo.js';
 import type { KeysParam, KeyUnion, SetToNever } from './utility-types.js';
 
@@ -29,6 +29,8 @@ type Remove = <T extends PlainObject, K extends KeysParam<T>>(
   keys: K,
 ) => asserts obj is CollapseType<SetToNever<T, KeyUnion<T, K>>>;
 
+type ToDict = (obj: unknown) => Dict;
+
 /******************************************************************************
                                   Constants                                  
 ******************************************************************************/
@@ -37,6 +39,7 @@ const typedPojo: Readonly<typeof pojo> & {
   readonly append: Append;
   readonly appendOne: AppendOne;
   readonly remove: Remove;
+  readonly toDict: ToDict;
 } = pojo;
 
 /******************************************************************************
@@ -44,4 +47,5 @@ const typedPojo: Readonly<typeof pojo> & {
 ******************************************************************************/
 
 export { type OmitNever } from './utility-types.js';
+export { type Dict } from './isPlainObject.js';
 export default typedPojo;

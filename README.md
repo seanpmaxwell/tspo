@@ -104,11 +104,12 @@ Use this as a quick decision guide:
 
 ### Validator functions
 
-| Function  | Notes                         |
-| --------- | ----------------------------- |
-| `is`      | Runtime POJO guard            |
-| `isKey`   | Type guard for existing key   |
-| `isValue` | Type guard for existing value |
+| Function  | Notes                                                |
+| --------- | ---------------------------------------------------- |
+| `is`      | Runtime plain-object guard                           |
+| `toDict`  | Runtime plain-object guard and returns a `Dict` type |
+| `isKey`   | Type guard for existing key                          |
+| `isValue` | Type guard for existing value                        |
 
 ### Collections
 
@@ -123,7 +124,7 @@ Use this as a quick decision guide:
 
 | Function  | Notes                              |
 | --------- | ---------------------------------- |
-| `iterate` | Recursive walker over nested POJOs |
+| `iterate` | Recursive walkes over nested POJOs |
 | `copy`    | Deep clone utility                 |
 | `compare` | Deep compare utility               |
 
@@ -270,6 +271,19 @@ pojo.is([]); // false
 pojo.is(new Date()); // false
 ```
 
+#### `.toDict(arg: unknown): Dict (Record<string, unknown>)`
+
+Validates that an argument is a plain-object returns the original reference as a `Dict` type. Throws if not a plain-object.
+
+- Type `Dict (Record<string, unknown>)` is also exported in case you need it
+
+```ts
+import { type Dict } from 'jet-pojo';
+
+const draft = { id: 1, email: 'ada@example.com' };
+const rec: Dict = pojo.toDict(draft);
+```
+
 #### `.isKey(T: object, arg: string): arg is keyof T`
 
 Runtime key existence check and TypeScript key guard.
@@ -370,7 +384,12 @@ pojo.iterate(
 
 #### `.copy(T: PlainObject): T`
 
-Copies a plain-object root value. Recursion only steps into nested plain-objects and arrays. Nested `Date` values are copied by epoch, and other nested objects (i.e. `Set/Map`) are _shallow-cloned_. This is much faster than `structuredClone`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
+Copies a plain-object value but recursion only steps into nested plain-objects and arrays:
+
+- primitives/functions copied by value
+- Nested `Date` values are copied by epoch
+- Nested objects other than plain-objects/arrays (i.e. `Set/Map`) are _shallow-cloned_.
+- `.copy` is much faster than `structuredClone`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
 
 ```ts
 const snapshot = pojo.copy({
@@ -399,7 +418,11 @@ const snapshot = pojo.copy({
 
 #### `.compare(T: object, U: object): boolean`
 
-Recursively compares 2 plain-objects but only arrays and plain-objects will be stepped into. `Date` objects will be compared by the epoch and all other nested objects will be compared by reference. In other words, this isn't recommended if you have nested objects other than plain-objects, arrays, or Dates.
+Recursively compares 2 plain-objects but only arrays and plain-objects will be stepped into.
+
+- `Date` objects will be compared by the epoch
+- Nested objects, other than arrays/plain-objects, will be compared by reference.
+- In other words, this isn't recommended if you have nested objects other than plain-objects, arrays, or Dates.
 
 ```ts
 const currentDate = new Date();
