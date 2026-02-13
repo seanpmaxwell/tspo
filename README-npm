@@ -9,7 +9,7 @@
 > `tspo (TypeScript Plain Object)` is a collection of utilities for handling both runtime and compile-time behavior for plain-objects.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/seanpmaxwell/master/screenshot.png" alt="tspo screenshot" />
+  <img src="https://raw.githubusercontent.com/seanpmaxwell/tspo/master/screenshot.png" alt="tspo screenshot" />
 </p>
 
 Please refer to the official <a href="https://github.com/seanpmaxwell/tspo">github repo</a> for the most up-to-date documentation.
