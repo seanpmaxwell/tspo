@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import pojo, { type Dict, type OmitNever } from '../src';
+import tspo, { type Dict, type OmitNever } from '../src';
 
 /******************************************************************************
                                   Dummy Data
@@ -36,26 +36,26 @@ const Dog = {
 
 describe('Returning new object', () => {
   test('.omit', () => {
-    const omit1 = pojo.omit(User, 'id');
+    const omit1 = tspo.omit(User, 'id');
     expect(omit1).toStrictEqual({ name: User.name, email: User.email });
-    const omit2 = pojo.omit(User, ['id', 'name']);
+    const omit2 = tspo.omit(User, ['id', 'name']);
     expect(omit2).toStrictEqual({ email: User.email });
   });
 
   test('.pick', () => {
-    const pick1 = pojo.pick(User, 'id');
+    const pick1 = tspo.pick(User, 'id');
     expect(pick1).toStrictEqual({ id: User.id });
-    const pick2 = pojo.pick(User, ['id', 'name']);
+    const pick2 = tspo.pick(User, ['id', 'name']);
     expect(pick2).toStrictEqual({ id: User.id, name: User.name });
   });
 
   test('.merge', () => {
-    const userDog = pojo.merge(User, Dog);
+    const userDog = tspo.merge(User, Dog);
     expect(userDog).toStrictEqual({ ...User, ...Dog });
   });
 
   test('.fill', () => {
-    const userDog = pojo.fill(User, { id: 2 });
+    const userDog = tspo.fill(User, { id: 2 });
     expect(userDog).toStrictEqual({ ...User, id: 2 });
   });
 });
@@ -64,31 +64,31 @@ describe('Mutating', () => {
   test('.append', () => {
     const user: IUser = { ...User },
       dog: IDog = { ...Dog };
-    pojo.append(user, dog);
+    tspo.append(user, dog);
     expect(user).toStrictEqual({ ...User, ...Dog });
   });
 
   test('.appendOne', () => {
     const user: IUser = { ...User };
-    pojo.appendOne(user, ['address', '123 fake st']);
+    tspo.appendOne(user, ['address', '123 fake st']);
     expect(user).toStrictEqual({ ...User, address: '123 fake st' });
   });
 
   test('.remove', () => {
     const user = { ...User };
-    pojo.remove(user, ['id', 'email']);
+    tspo.remove(user, ['id', 'email']);
     user;
     type tuser = OmitNever<typeof user>;
     expect(user).toStrictEqual({ name: User.name });
     const user2 = { ...User };
-    pojo.remove(user2, 'email');
+    tspo.remove(user2, 'email');
     type tuser2 = OmitNever<typeof user2>;
     expect(user2).toStrictEqual({ id: User.id, name: User.name });
   });
 
   test('.toDict', () => {
     const draft = { id: 1, email: 'ada@example.com' };
-    const rec = pojo.toDict(draft);
+    const rec: Dict = tspo.toDict(draft);
     rec.horse = 'cow';
     delete rec.animal;
     // Type `draft`: Dict (Record<string, unknown>)
@@ -99,30 +99,30 @@ describe('Mutating', () => {
 
 describe('Indexing', () => {
   test('.index', () => {
-    const val1 = pojo.index(User, 'id');
+    const val1 = tspo.index(User, 'id');
     expect(val1).toStrictEqual(1);
-    const val2 = pojo.index(User, 'idd');
+    const val2 = tspo.index(User, 'idd');
     expect(val2).toStrictEqual(undefined);
   });
 
   test('.safeIndex', () => {
-    const val1 = pojo.safeIndex(User, 'id');
+    const val1 = tspo.safeIndex(User, 'id');
     expect(val1).toStrictEqual(1);
-    const getVal = () => pojo.safeIndex(User, 'idd');
+    const getVal = () => tspo.safeIndex(User, 'idd');
     expect(() => getVal()).toThrowError();
   });
 
   test('.reverseIndex', () => {
-    const key1 = pojo.reverseIndex(User, 1);
+    const key1 = tspo.reverseIndex(User, 1);
     expect(key1).toStrictEqual(['id']);
-    const key2 = pojo.reverseIndex(User, 2);
+    const key2 = tspo.reverseIndex(User, 2);
     expect(key2).toStrictEqual([]);
   });
 
   test('.safeReverseIndex', () => {
-    const key1 = pojo.safeReverseIndex(User, 1);
+    const key1 = tspo.safeReverseIndex(User, 1);
     expect(key1).toStrictEqual('id');
-    const getVal = () => pojo.safeReverseIndex(User, 2);
+    const getVal = () => tspo.safeReverseIndex(User, 2);
     expect(() => getVal()).toThrowError();
   });
 });
@@ -131,24 +131,24 @@ describe('Indexing', () => {
 
 describe('Validator-functions', () => {
   test('.is', () => {
-    expect(pojo.is(User)).toStrictEqual(true);
-    expect(pojo.is([])).toStrictEqual(false);
+    expect(tspo.is(User)).toStrictEqual(true);
+    expect(tspo.is([])).toStrictEqual(false);
   });
 
   test('.isKey', () => {
     const val: string = 'email';
-    if (pojo.isKey(User, val)) {
+    if (tspo.isKey(User, val)) {
       val;
     }
-    expect(pojo.isKey(User, val)).toStrictEqual(true);
+    expect(tspo.isKey(User, val)).toStrictEqual(true);
   });
 
   test('.isValue', () => {
     const val: string = 'joe';
-    if (pojo.isValue(User, val)) {
+    if (tspo.isValue(User, val)) {
       val;
     }
-    expect(pojo.isValue(User, val)).toStrictEqual(true);
+    expect(tspo.isValue(User, val)).toStrictEqual(true);
   });
 });
 
@@ -156,17 +156,17 @@ describe('Validator-functions', () => {
 
 describe('Collections', () => {
   test('.keys', () => {
-    const keys = pojo.keys(User);
+    const keys = tspo.keys(User);
     expect(keys).toStrictEqual(['id', 'name', 'email']);
   });
 
   test('.values', () => {
-    const values = pojo.values(User);
+    const values = tspo.values(User);
     expect(values).toStrictEqual([1, 'joe', 'joe@gmail.com']);
   });
 
   test('.entries', () => {
-    const entries = pojo.entries(User);
+    const entries = tspo.entries(User);
     expect(entries).toStrictEqual([
       ['id', 1],
       ['name', 'joe'],
@@ -175,7 +175,7 @@ describe('Collections', () => {
   });
 
   test('.firstEntry', () => {
-    const entries = pojo.firstEntry({ id: 1 });
+    const entries = tspo.firstEntry({ id: 1 });
     expect(entries).toStrictEqual(['id', 1]);
   });
 });
@@ -207,7 +207,7 @@ const UserFull = {
 
 describe('Utilities', () => {
   test('.copy', () => {
-    const userFullCopy = pojo.copy(UserFull);
+    const userFullCopy = tspo.copy(UserFull);
     expect(userFullCopy).toStrictEqual(UserFull);
     expect(userFullCopy.address).not.toBe(UserFull.address);
     expect(userFullCopy.jobHistory).not.toBe(UserFull.jobHistory);
@@ -222,7 +222,7 @@ describe('Utilities', () => {
   test('.iterate', () => {
     const entries: Array<{ key: string | number; value: unknown }> = [];
 
-    pojo.iterate(UserFull, ({ key, value }) => {
+    tspo.iterate(UserFull, ({ key, value }) => {
       entries.push({ key, value });
     });
 
@@ -261,8 +261,8 @@ describe('Utilities', () => {
       address: { city: 'seattle' },
       roles: new Set(['fork-lift driver', 'cashier']),
     };
-    expect(pojo.compare(a, b)).toBe(true);
-    expect(pojo.compare(a, c)).toBe(false);
+    expect(tspo.compare(a, b)).toBe(true);
+    expect(tspo.compare(a, c)).toBe(false);
   });
 });
 
