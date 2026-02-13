@@ -1,9 +1,15 @@
-# tspo ✈️
+# 🟦 tspo
 
 [![npm](https://img.shields.io/npm/v/tspo?label=npm&color=0ea5e9)](https://www.npmjs.com/package/tspo)
 [![downloads](https://img.shields.io/npm/dm/tspo?label=downloads&color=38bdf8)](https://www.npmjs.com/package/tspo)
 [![types](https://img.shields.io/npm/types/tspo?label=types&color=22c55e)](https://www.npmjs.com/package/tspo)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/tspo?label=bundle&color=0f172a)](https://bundlephobia.com/package/tspo)
 [![license](https://img.shields.io/npm/l/tspo?label=license&color=334155)](LICENSE)
+
+> `tspo (TypeScript Plain Object)` is a collection of utilities for handling both runtime and compile-time behavior for plain-objects.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/seanpmaxwell/master/screenshot.png" alt="tspo screenshot" />
+</p>
 
 Please refer to the official <a href="https://github.com/seanpmaxwell/tspo">github repo</a> for the most up-to-date documentation.
