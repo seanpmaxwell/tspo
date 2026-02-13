@@ -8,14 +8,14 @@
 
 > `jet-pojo` is a TypeScript-first utility library for working with plain JavaScript objects while keeping runtime behavior and static types aligned.
 
-## 🤔 What a POJO?
+## 🤔 What is a POJO?
 
-A _plain-old-javascript-object (POJO or pojo)_ is any object which inherits directly from the base `Object` class and no other or is created through `Object.create(null)`.
+A _plain-old-javascript-object (POJO or pojo)_ is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)`.
 
 3 ways to implement:
 
 - **object-literals:** (most-common), i.e `{ id: 1, name: 'john' }`
-- **Object constructor:**: `var user = new Object()`
+- **Object constructor:** `var user = new Object()`
 - **null-prototype objects:** `var user = Object.create(null)`
 
 > _object-literals_ and _instances of Object_ will inherit from the base _Object_ class; hence, they can use methods like `.hasOwnProperty`. _null-prototype objects_ inherit from nothing so cannot use these functions.
@@ -124,7 +124,7 @@ Use this as a quick decision guide:
 
 | Function  | Notes                              |
 | --------- | ---------------------------------- |
-| `iterate` | Recursive walkes over nested POJOs |
+| `iterate` | Recursive walks over nested POJOs |
 | `copy`    | Deep clone utility                 |
 | `compare` | Deep compare utility               |
 
@@ -168,7 +168,7 @@ Returns a full object `T`, using the first argument as the default, and appendin
 
 ```ts
 const config = pojo.fill({ retries: 3, timeoutMs: 5000 }, { timeoutMs: 8000 });
-// Value: { retries: 3000, timeoutMs: 8000 }
+// Value: { retries: 3, timeoutMs: 8000 }
 // Type:  { retries: number; timeoutMs: number }
 ```
 
@@ -202,7 +202,7 @@ pojo.appendOne(draft, ['team', 'platform']);
 #### `.remove(T: object, K: keyof T | Array<keyof T>): void`
 
 Mutates `T` and deletes one or more keys.  
-Because of TypeScript limitiations, we cannot remove keys in place on `T` so we set them to `never`.
+Because of TypeScript limitations, we cannot remove keys in place on `T` so we set them to `never`.
 If you want to clean the type after removing, use `OmitNever<T>`
 
 ```ts
@@ -273,7 +273,7 @@ pojo.is(new Date()); // false
 
 #### `.toDict(arg: unknown): Dict (Record<string, unknown>)`
 
-Validates that an argument is a plain-object returns the original reference as a `Dict` type. Throws if not a plain-object.
+Validates that an argument is a plain-object and returns the original reference as a `Dict` type. Throws if not a plain-object.
 
 - Type `Dict (Record<string, unknown>)` is also exported in case you need it
 
@@ -341,7 +341,7 @@ const allEntries = pojo.entries(user);
 #### `.firstEntry(arg: object): [keyof T, T[keyof T]]`
 
 Returns the first entry by object enumeration order.
-This is useful for when you know your object only has one entry and but you don't know the `key` value.
+This is useful when you know your object only has one entry but you don't know the `key` value.
 
 ```ts
 const [key, value] = pojo.firstEntry({ id: 1, name: 'Ada' });
@@ -353,7 +353,7 @@ const [key, value] = pojo.firstEntry({ id: 1, name: 'Ada' });
 
 #### `.iterate(root: object | array, cb: IterateCb): void`
 
-Recursively iterates a plain-object (and any nested plain-objects/arrays) and fires a callback for every key that is neither a plain-object/array.
+Recursively iterates a plain-object (and any nested plain-objects/arrays) and fires a callback for every key that is neither a plain-object nor an array.
 
 `IterateCb: (arg: ArgumentObject) => void`:
 
