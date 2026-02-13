@@ -1,16 +1,16 @@
-# jet-pojo ✈️
+# tspo ✈️
 
-[![npm](https://img.shields.io/npm/v/jet-pojo?label=npm&color=0ea5e9)](https://www.npmjs.com/package/jet-pojo)
-[![downloads](https://img.shields.io/npm/dm/jet-pojo?label=downloads&color=38bdf8)](https://www.npmjs.com/package/jet-pojo)
-[![types](https://img.shields.io/npm/types/jet-pojo?label=types&color=22c55e)](https://www.npmjs.com/package/jet-pojo)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/jet-pojo?label=bundle&color=0f172a)](https://bundlephobia.com/package/jet-pojo)
-[![license](https://img.shields.io/npm/l/jet-pojo?label=license&color=334155)](LICENSE)
+[![npm](https://img.shields.io/npm/v/tspo?label=npm&color=0ea5e9)](https://www.npmjs.com/package/tspo)
+[![downloads](https://img.shields.io/npm/dm/tspo?label=downloads&color=38bdf8)](https://www.npmjs.com/package/tspo)
+[![types](https://img.shields.io/npm/types/tspo?label=types&color=22c55e)](https://www.npmjs.com/package/tspo)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/tspo?label=bundle&color=0f172a)](https://bundlephobia.com/package/tspo)
+[![license](https://img.shields.io/npm/l/tspo?label=license&color=334155)](LICENSE)
 
-> `jet-pojo` is a TypeScript-first utility library for working with plain JavaScript objects while keeping runtime behavior and static types aligned.
+> `tspo (TypeScript Plain Object)` is a collection of utilities for handling both runtime and compile-time behavior for plain-objects.
 
-## 🤔 What is a POJO?
+## 🤔 What is a plain-object?
 
-A _plain-old-javascript-object (POJO or pojo)_ is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)`.
+A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)`.
 
 3 ways to implement:
 
@@ -20,7 +20,7 @@ A _plain-old-javascript-object (POJO or pojo)_ is any object which inherits dire
 
 > _object-literals_ and _instances of Object_ will inherit from the base _Object_ class; hence, they can use methods like `.hasOwnProperty`. _null-prototype objects_ inherit from nothing so cannot use these functions.
 
-## ❓Why jet-pojo?
+## ❓Why tspo?
 
 - Small, zero-dependency utility set centered around plain-object workflows.
 - Runtime AND type-level guarantees in the same API surface.
@@ -30,21 +30,21 @@ A _plain-old-javascript-object (POJO or pojo)_ is any object which inherits dire
 ## 📦 Installation
 
 ```bash
-npm install jet-pojo
+npm install tspo
 ```
 
 ```bash
-pnpm add jet-pojo
+pnpm add tspo
 ```
 
 ```bash
-yarn add jet-pojo
+yarn add tspo
 ```
 
 ## ⚡ Quick start
 
 ```ts
-import pojo, { OmitRemoved } from 'jet-pojo';
+import tspo, { OmitRemoved } from 'tspo';
 
 const user = {
   id: 1,
@@ -53,22 +53,22 @@ const user = {
 } as const;
 
 // Non-mutating functions
-const omitted = pojo.omit(user, 'email');
+const omitted = tspo.omit(user, 'email');
 // omitted -> { id: 1, name: "Ada" }
-const picked = pojo.pick(user, 'name');
+const picked = tspo.pick(user, 'name');
 // picked -> { name: "Ada" }
-const merged = pojo.merge({ id: 1 }, { name: 'Ada' });
+const merged = tspo.merge({ id: 1 }, { name: 'Ada' });
 // merged -> { id: 1, name: "Ada" }
 
 // Mutating functions
 const dog = { id: 1 };
-pojo.append(dog, { name: 'fido' });
+tspo.append(dog, { name: 'fido' });
 // dog -> { id: 1, name: fido }
-pojo.remove(dog, 'name');
+tspo.remove(dog, 'name');
 // dog -> { id: 1, name: never }
 
 // Accessors
-const role = pojo.safeIndex(user, 'someString');
+const role = tspo.safeIndex(user, 'someString');
 // role -> 'id' | 'name' | 'email'
 ```
 
@@ -122,11 +122,11 @@ Use this as a quick decision guide:
 
 ### Utilities
 
-| Function  | Notes                              |
-| --------- | ---------------------------------- |
-| `iterate` | Recursive walks over nested POJOs |
-| `copy`    | Deep clone utility                 |
-| `compare` | Deep compare utility               |
+| Function  | Notes                             |
+| --------- | --------------------------------- |
+| `iterate` | Recursive walks over nested TSPOs |
+| `copy`    | Deep clone utility                |
+| `compare` | Deep compare utility              |
 
 ## 📖 API reference
 
@@ -137,7 +137,7 @@ Use this as a quick decision guide:
 Returns a new object excluding one key or an array of keys.
 
 ```ts
-const redacted = pojo.omit({ a: 'a', b: 1, c: false }, ['b', 'c']);
+const redacted = tspo.omit({ a: 'a', b: 1, c: false }, ['b', 'c']);
 // Value: { a: 'a' }
 // Type:  { a: string; }
 ```
@@ -147,7 +147,7 @@ const redacted = pojo.omit({ a: 'a', b: 1, c: false }, ['b', 'c']);
 Returns a new object containing only one key or an array of keys.
 
 ```ts
-const preview = pojo.pick({ a: 'a', b: 1, c: false }, ['a', 'c']);
+const preview = tspo.pick({ a: 'a', b: 1, c: false }, ['a', 'c']);
 // Value: { a: 'a', c: false }
 // Type:  { a: string; c: boolean }
 ```
@@ -157,7 +157,7 @@ const preview = pojo.pick({ a: 'a', b: 1, c: false }, ['a', 'c']);
 Returns a new object from `{ ...a, ...b }` with merged typing.
 
 ```ts
-const full = pojo.merge({ id: 1 }, { active: true });
+const full = tspo.merge({ id: 1 }, { active: true });
 // Value: { id: 1; active: true }
 // Type:  { id: number; active: boolean }
 ```
@@ -167,7 +167,7 @@ const full = pojo.merge({ id: 1 }, { active: true });
 Returns a full object `T`, using the first argument as the default, and appending supplied values from an optional partial (second argument).
 
 ```ts
-const config = pojo.fill({ retries: 3, timeoutMs: 5000 }, { timeoutMs: 8000 });
+const config = tspo.fill({ retries: 3, timeoutMs: 5000 }, { timeoutMs: 8000 });
 // Value: { retries: 3, timeoutMs: 8000 }
 // Type:  { retries: number; timeoutMs: number }
 ```
@@ -183,7 +183,7 @@ Mutates `T` by copying enumerable keys from `U`. TypeScript narrows `T` to `T & 
 
 ```ts
 const draft = { id: 1 };
-pojo.append(draft, { name: 'Ada' });
+tspo.append(draft, { name: 'Ada' });
 // Value: { id: 1, name: 'Ada' }
 // Type:  { id: number; name: string }
 ```
@@ -194,7 +194,7 @@ Mutates `T` by adding a single entry. TypeScript narrows `T` to `T & { key: valu
 
 ```ts
 const draft = { id: 1 };
-pojo.appendOne(draft, ['team', 'platform']);
+tspo.appendOne(draft, ['team', 'platform']);
 // Value: { id: 1, team: 'platform' }
 // Type:  { id: number; team: string }
 ```
@@ -207,7 +207,7 @@ If you want to clean the type after removing, use `OmitNever<T>`
 
 ```ts
 const draft = { id: 1, email: 'ada@example.com' };
-pojo.remove(draft, 'email');
+tspo.remove(draft, 'email');
 type Clean = OmitNever<typeof draft>; // strips `never` keys
 // Value: { id: 1 }
 // Type `draft`: { id: number; email: never }
@@ -223,7 +223,7 @@ These are useful when your key or value is coming from a dynamic source.
 Dynamic key lookup that returns `undefined` when missing.
 
 ```ts
-const value = pojo.index({ a: 'a', b: 1 }, 'a');
+const value = tspo.index({ a: 'a', b: 1 }, 'a');
 // Value: "a"
 // Type: => 'a' | 1 | undefined
 ```
@@ -233,7 +233,7 @@ const value = pojo.index({ a: 'a', b: 1 }, 'a');
 Dynamic key lookup that _throws_ if the key does not exist.
 
 ```ts
-const value = pojo.safeIndex({ a: 'a', b: 1 }, 'a');
+const value = tspo.safeIndex({ a: 'a', b: 1 }, 'a');
 // Value: "a"
 // Type:  'a' | 1
 ```
@@ -243,7 +243,7 @@ const value = pojo.safeIndex({ a: 'a', b: 1 }, 'a');
 Returns all keys whose value is strictly equal (`===`) to `value`.
 
 ```ts
-const keys = pojo.reverseIndex({ a: 1, b: 2, c: 1 }, 1);
+const keys = tspo.reverseIndex({ a: 1, b: 2, c: 1 }, 1);
 // Value: ["a", "c"]
 // Type (Tuple-type): ['a', 'b', 'c']
 ```
@@ -253,7 +253,7 @@ const keys = pojo.reverseIndex({ a: 1, b: 2, c: 1 }, 1);
 Returns exactly one matching key for `value`. Throws if zero or multiple keys match.
 
 ```ts
-const key = pojo.safeReverseIndex({ a: 1, b: 2 }, 2);
+const key = tspo.safeReverseIndex({ a: 1, b: 2 }, 2);
 // Value: "b"
 // Type: 'a' | 'b'
 ```
@@ -262,13 +262,13 @@ const key = pojo.safeReverseIndex({ a: 1, b: 2 }, 2);
 
 #### `.is(arg: unknown): arg is PlainObject (NonNullable<object>)`
 
-Validator-function for POJOs.
+Validator-function for TSPOs.
 
 ```ts
-pojo.is({ a: 1 }); // true
-pojo.is(Object.create(null)); // true
-pojo.is([]); // false
-pojo.is(new Date()); // false
+tspo.is({ a: 1 }); // true
+tspo.is(Object.create(null)); // true
+tspo.is([]); // false
+tspo.is(new Date()); // false
 ```
 
 #### `.toDict(arg: unknown): Dict (Record<string, unknown>)`
@@ -278,10 +278,10 @@ Validates that an argument is a plain-object and returns the original reference 
 - Type `Dict (Record<string, unknown>)` is also exported in case you need it
 
 ```ts
-import { type Dict } from 'jet-pojo';
+import { type Dict } from 'tspo';
 
 const draft = { id: 1, email: 'ada@example.com' };
-const rec: Dict = pojo.toDict(draft);
+const rec: Dict = tspo.toDict(draft);
 ```
 
 #### `.isKey(T: object, arg: string): arg is keyof T`
@@ -290,7 +290,7 @@ Runtime key existence check and TypeScript key guard.
 
 ```ts
 const candidate: string = 'email';
-if (pojo.isKey(user, candidate)) {
+if (tspo.isKey(user, candidate)) {
   // candidate is narrowed to `keyof typeof user`
 }
 ```
@@ -301,7 +301,7 @@ Runtime value existence check and TypeScript value guard.
 
 ```ts
 const candidate: unknown = 'admin';
-if (pojo.isValue(user, candidate)) {
+if (tspo.isValue(user, candidate)) {
   // candidate is narrowed to `typeof user[keyof typeof user]`
 }
 ```
@@ -313,7 +313,7 @@ if (pojo.isValue(user, candidate)) {
 Typed `Object.keys`. Tuple order not guaranteed.
 
 ```ts
-const keys = pojo.keys({ a: 1, b: 2, c: 1 });
+const keys = tspo.keys({ a: 1, b: 2, c: 1 });
 // Value: ["a", "b", "c"]
 // Type (Tuple-type): ['a', 'b', 'c']
 ```
@@ -323,7 +323,7 @@ const keys = pojo.keys({ a: 1, b: 2, c: 1 });
 Typed `Object.values()`. Tuple order not guaranteed.
 
 ```ts
-const allValues = pojo.values({ a: 1, b: 2, c: 1 });
+const allValues = tspo.values({ a: 1, b: 2, c: 1 });
 // Value: [1, 2, 3]
 // Type (Tuple-type): [1, 2, 3]
 ```
@@ -333,7 +333,7 @@ const allValues = pojo.values({ a: 1, b: 2, c: 1 });
 Typed `Object.entries`. Tuple order not guaranteed.
 
 ```ts
-const allEntries = pojo.entries(user);
+const allEntries = tspo.entries(user);
 // Value: [["a", 1], ["b", 2], ["c", 3]]
 // Type (Tuple-type): [['a', 1], ['b', 2], ['c', 3]]
 ```
@@ -344,7 +344,7 @@ Returns the first entry by object enumeration order.
 This is useful when you know your object only has one entry but you don't know the `key` value.
 
 ```ts
-const [key, value] = pojo.firstEntry({ id: 1, name: 'Ada' });
+const [key, value] = tspo.firstEntry({ id: 1, name: 'Ada' });
 // Value: ["id", 1]
 // Type: ["id", number]
 ```
@@ -365,7 +365,7 @@ Recursively iterates a plain-object (and any nested plain-objects/arrays) and fi
 - `path (Array<string | number>)`: path to `parent` from root
 
 ```ts
-pojo.iterate(
+tspo.iterate(
   {
     user: { id: 1, name: 'Ada' }, // `user` will be entered
     flags: ['staff'], // `flags` will be entered
@@ -392,7 +392,7 @@ Copies a plain-object value but recursion only steps into nested plain-objects a
 - `.copy` is much faster than `structuredClone`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
 
 ```ts
-const snapshot = pojo.copy({
+const snapshot = tspo.copy({
   id: 1,
   birthdate: new Date(), // `birthdate` -> new Date() of same epoch
   address: {
@@ -450,8 +450,8 @@ const user3 = {
   jobs: jobs2,
 };
 
-pojo.compare(user, user2); // true;
-pojo.compare(user, user3); // false;
+tspo.compare(user, user2); // true;
+tspo.compare(user, user3); // false;
 ```
 
 ## 📄 License

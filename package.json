@@ -1,11 +1,11 @@
 {
-  "name": "jet-pojo",
+  "name": "tspo",
   "version": "1.0.0",
-  "description": "A module of generic functions for mutating objects while keeping them typesafe.",
+  "description": "is a collection of utilities for handling both runtime and compile-time behavior for plain-objects.",
   "keywords": [
     "typescript",
     "javascript",
-    "pojo",
+    "tspo",
     "plain-object",
     "object-utils",
     "utility-library",
@@ -22,13 +22,13 @@
     "runtime-validation",
     "zero-dependency"
   ],
-  "homepage": "https://github.com/seanpmaxwell/jet-pojo#readme",
+  "homepage": "https://github.com/seanpmaxwell/tspo#readme",
   "bugs": {
-    "url": "https://github.com/seanpmaxwell/jet-pojo/issues"
+    "url": "https://github.com/seanpmaxwell/tspo/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/seanpmaxwell/jet-pojo.git"
+    "url": "git+https://github.com/seanpmaxwell/tspo.git"
   },
   "license": "MIT",
   "author": "seanpmaxwell",

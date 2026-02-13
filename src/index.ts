@@ -1,5 +1,5 @@
 import { type Dict, type PlainObject } from './isPlainObject.js';
-import pojo from './jet-pojo.js';
+import tspo from './tspo.js';
 import type { KeysParam, KeyUnion, SetToNever } from './utility-types.js';
 
 /******************************************************************************
@@ -35,12 +35,12 @@ type ToDict = (obj: unknown) => Dict;
                                   Constants                                  
 ******************************************************************************/
 
-const typedPojo: Readonly<typeof pojo> & {
+const typedTspo: Readonly<typeof tspo> & {
   readonly append: Append;
   readonly appendOne: AppendOne;
   readonly remove: Remove;
   readonly toDict: ToDict;
-} = pojo;
+} = tspo;
 
 /******************************************************************************
                                    Export                                  
@@ -48,4 +48,4 @@ const typedPojo: Readonly<typeof pojo> & {
 
 export { type OmitNever } from './utility-types.js';
 export { type Dict } from './isPlainObject.js';
-export default typedPojo;
+export default typedTspo;

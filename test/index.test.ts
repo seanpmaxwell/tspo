@@ -60,6 +60,8 @@ describe('Returning new object', () => {
   });
 });
 
+// -- Mutating -- //
+
 describe('Mutating', () => {
   test('.append', () => {
     const user: IUser = { ...User },
