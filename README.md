@@ -78,60 +78,61 @@ Use this as a quick decision guide:
 
 ### Object builders
 
-| Function | Notes                                     |
-| -------- | ----------------------------------------- |
-| `omit`   | Returns object without selected keys      |
-| `pick`   | Returns object with selected keys         |
-| `merge`  | Returns `{...a, ...b}`                    |
-| `fill`   | Combines defaults with a partial override |
+| Function             | Notes                                     |
+| -------------------- | ----------------------------------------- |
+| [`omit`](#omit)      | Returns object without selected keys      |
+| [`pick`](#pick)      | Returns object with selected keys         |
+| [`merge`](#merge)    | Returns `{...a, ...b}`                    |
+| [`fill`](#fill)      | Combines defaults with a partial override |
 
 ### Object modifiers
 
-| Function    | Notes                                       |
-| ----------- | ------------------------------------------- |
-| `append`    | Adds keys from `addOn` to `obj`             |
-| `appendOne` | Adds one `[key, value]` entry               |
-| `remove`    | Deletes keys and refines deletes to `never` |
+| Function                  | Notes                                       |
+| ------------------------- | ------------------------------------------- |
+| [`append`](#append)       | Adds keys from `addOn` to `obj`             |
+| [`appendOne`](#appendone) | Adds one `[key, value]` entry               |
+| [`remove`](#remove)       | Deletes keys and refines deletes to `never` |
 
 ### Indexing
 
-| Function           | Notes                                           |
-| ------------------ | ----------------------------------------------- |
-| `index`            | Dynamic lookup, returns `undefined` when absent |
-| `safeIndex`        | Lookup that throws on missing key               |
-| `reverseIndex`     | Returns all matching keys for a value           |
-| `safeReverseIndex` | Returns exactly one key or throws               |
+| Function                                 | Notes                                           |
+| ---------------------------------------- | ----------------------------------------------- |
+| [`index`](#index)                        | Dynamic lookup, returns `undefined` when absent |
+| [`safeIndex`](#safeindex)                | Lookup that throws on missing key               |
+| [`reverseIndex`](#reverseindex)          | Returns all matching keys for a value           |
+| [`safeReverseIndex`](#safereverseindex)  | Returns exactly one key or throws               |
 
 ### Validator functions
 
-| Function  | Notes                                                |
-| --------- | ---------------------------------------------------- |
-| `is`      | Runtime plain-object guard                           |
-| `toDict`  | Runtime plain-object guard and returns a `Dict` type |
-| `isKey`   | Type guard for existing key                          |
-| `isValue` | Type guard for existing value                        |
+| Function              | Notes                                                |
+| --------------------- | ---------------------------------------------------- |
+| [`is`](#is)           | Runtime plain-object guard                           |
+| [`toDict`](#todict)   | Runtime plain-object guard and returns a `Dict` type |
+| [`isKey`](#iskey)     | Type guard for existing key                          |
+| [`isValue`](#isvalue) | Type guard for existing value                        |
 
 ### Collections
 
-| Function     | Notes                                   |
-| ------------ | --------------------------------------- |
-| `keys`       | Typed `Object.keys` tuple               |
-| `values`     | Typed `Object.values` tuple             |
-| `entries`    | Typed `Object.entries` tuple            |
-| `firstEntry` | First entry in object enumeration order |
+| Function                     | Notes                                   |
+| ---------------------------- | --------------------------------------- |
+| [`keys`](#keys)              | Typed `Object.keys` tuple               |
+| [`values`](#values)          | Typed `Object.values` tuple             |
+| [`entries`](#entries)        | Typed `Object.entries` tuple            |
+| [`firstEntry`](#firstentry)  | First entry in object enumeration order |
 
 ### Utilities
 
-| Function  | Notes                             |
-| --------- | --------------------------------- |
-| `iterate` | Recursive walks over nested TSPOs |
-| `copy`    | Deep clone utility                |
-| `compare` | Deep compare utility              |
+| Function              | Notes                             |
+| --------------------- | --------------------------------- |
+| [`iterate`](#iterate) | Recursive walks over nested TSPOs |
+| [`copy`](#copy)       | Deep clone utility                |
+| [`compare`](#compare) | Deep compare utility              |
 
 ## 📖 API reference
 
 ### Object builders
 
+<a id="omit"></a>
 #### `.omit(T: object, K: keyof T | Array<keyof T>): Omit<T, K>`
 
 Returns a new object excluding one key or an array of keys.
@@ -142,6 +143,7 @@ const redacted = tspo.omit({ a: 'a', b: 1, c: false }, ['b', 'c']);
 // Type:  { a: string; }
 ```
 
+<a id="pick"></a>
 #### `.pick(T: object, K: keyof T | Array<keyof T>): Pick<T, K>`
 
 Returns a new object containing only one key or an array of keys.
@@ -152,6 +154,7 @@ const preview = tspo.pick({ a: 'a', b: 1, c: false }, ['a', 'c']);
 // Type:  { a: string; c: boolean }
 ```
 
+<a id="merge"></a>
 #### `.merge(T: object, U: object): T & U`
 
 Returns a new object from `{ ...a, ...b }` with merged typing.
@@ -162,6 +165,7 @@ const full = tspo.merge({ id: 1 }, { active: true });
 // Type:  { id: number; active: boolean }
 ```
 
+<a id="fill"></a>
 #### `.fill(T: object, partial?: Partial<T>): T`
 
 Returns a full object `T`, using the first argument as the default, and appending supplied values from an optional partial (second argument).
@@ -177,6 +181,7 @@ const config = tspo.fill({ retries: 3, timeoutMs: 5000 }, { timeoutMs: 8000 });
 - Functions which modify the provided object will mutate its type and value.
 - **DO NOT** set a return value from mutation functions or type-updating will not work.
 
+<a id="append"></a>
 #### `.append(T: object, U: object): void`
 
 Mutates `T` by copying enumerable keys from `U`. TypeScript narrows `T` to `T & U` after the call.
@@ -188,6 +193,7 @@ tspo.append(draft, { name: 'Ada' });
 // Type:  { id: number; name: string }
 ```
 
+<a id="appendone"></a>
 #### `.appendOne(T: object, entry: [key, value]): void`
 
 Mutates `T` by adding a single entry. TypeScript narrows `T` to `T & { key: value }`.
@@ -199,6 +205,7 @@ tspo.appendOne(draft, ['team', 'platform']);
 // Type:  { id: number; team: string }
 ```
 
+<a id="remove"></a>
 #### `.remove(T: object, K: keyof T | Array<keyof T>): void`
 
 Mutates `T` and deletes one or more keys.  
@@ -218,6 +225,7 @@ type Clean = OmitNever<typeof draft>; // strips `never` keys
 
 These are useful when your key or value is coming from a dynamic source.
 
+<a id="index"></a>
 #### `.index(T: object, key: string | number): keyof T | undefined`
 
 Dynamic key lookup that returns `undefined` when missing.
@@ -228,6 +236,7 @@ const value = tspo.index({ a: 'a', b: 1 }, 'a');
 // Type: => 'a' | 1 | undefined
 ```
 
+<a id="safeindex"></a>
 #### `.safeIndex(T: object, key: string | number): keyof T`
 
 Dynamic key lookup that _throws_ if the key does not exist.
@@ -238,6 +247,7 @@ const value = tspo.safeIndex({ a: 'a', b: 1 }, 'a');
 // Type:  'a' | 1
 ```
 
+<a id="reverseindex"></a>
 #### `.reverseIndex(T: object, value: unknown): Array<T[keyof T]>`
 
 Returns all keys whose value is strictly equal (`===`) to `value`.
@@ -248,6 +258,7 @@ const keys = tspo.reverseIndex({ a: 1, b: 2, c: 1 }, 1);
 // Type (Tuple-type): ['a', 'b', 'c']
 ```
 
+<a id="safereverseindex"></a>
 #### `.safeReverseIndex(T: object, value: unknown): T[keyof T]`
 
 Returns exactly one matching key for `value`. Throws if zero or multiple keys match.
@@ -260,6 +271,7 @@ const key = tspo.safeReverseIndex({ a: 1, b: 2 }, 2);
 
 ### Validator functions
 
+<a id="is"></a>
 #### `.is(arg: unknown): arg is PlainObject (NonNullable<object>)`
 
 Validator-function for TSPOs.
@@ -271,6 +283,7 @@ tspo.is([]); // false
 tspo.is(new Date()); // false
 ```
 
+<a id="todict"></a>
 #### `.toDict(arg: unknown): Dict (Record<string, unknown>)`
 
 Validates that an argument is a plain-object and returns the original reference as a `Dict` type. Throws if not a plain-object.
@@ -284,6 +297,7 @@ const draft = { id: 1, email: 'ada@example.com' };
 const rec: Dict = tspo.toDict(draft);
 ```
 
+<a id="iskey"></a>
 #### `.isKey(T: object, arg: string): arg is keyof T`
 
 Runtime key existence check and TypeScript key guard.
@@ -295,6 +309,7 @@ if (tspo.isKey(user, candidate)) {
 }
 ```
 
+<a id="isvalue"></a>
 #### `.isValue(T: object, arg: unknown): arg is T[keyof T]`
 
 Runtime value existence check and TypeScript value guard.
@@ -308,6 +323,7 @@ if (tspo.isValue(user, candidate)) {
 
 ### Collections
 
+<a id="keys"></a>
 #### `.keys(T: object): Tuple of keyof T`
 
 Typed `Object.keys`. Tuple order not guaranteed.
@@ -318,6 +334,7 @@ const keys = tspo.keys({ a: 1, b: 2, c: 1 });
 // Type (Tuple-type): ['a', 'b', 'c']
 ```
 
+<a id="values"></a>
 #### `.values(T: object): Tuple of T[keyof T]`
 
 Typed `Object.values()`. Tuple order not guaranteed.
@@ -328,6 +345,7 @@ const allValues = tspo.values({ a: 1, b: 2, c: 1 });
 // Type (Tuple-type): [1, 2, 3]
 ```
 
+<a id="entries"></a>
 #### `.entries(T: unknown): Tuple of [keyof T, T[keyof T]]`
 
 Typed `Object.entries`. Tuple order not guaranteed.
@@ -338,6 +356,7 @@ const allEntries = tspo.entries(user);
 // Type (Tuple-type): [['a', 1], ['b', 2], ['c', 3]]
 ```
 
+<a id="firstentry"></a>
 #### `.firstEntry(arg: object): [keyof T, T[keyof T]]`
 
 Returns the first entry by object enumeration order.
@@ -351,6 +370,7 @@ const [key, value] = tspo.firstEntry({ id: 1, name: 'Ada' });
 
 ### Utilities
 
+<a id="iterate"></a>
 #### `.iterate(root: object | array, cb: IterateCb): void`
 
 Recursively iterates a plain-object (and any nested plain-objects/arrays) and fires a callback for every key that is neither a plain-object nor an array.
@@ -382,12 +402,14 @@ tspo.iterate(
 );
 ```
 
-#### `.copy(T: PlainObject): T`
+<a id="copy"></a>
+#### `.copy(T: PlainObject, options?: { resetDates?: boolean }): T`
 
 Copies a plain-object value but recursion only steps into nested plain-objects and arrays:
 
 - primitives/functions copied by value
-- Nested `Date` values are copied by epoch
+- Nested `Date` values are copied by epoch (default behavior)
+- `resetDates` resets all nested `Date` values to current time (`new Date()`)
 - Nested objects other than plain-objects/arrays (i.e. `Set/Map`) are _shallow-cloned_.
 - `.copy` is much faster than `structuredClone`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
 
@@ -416,6 +438,15 @@ const snapshot = tspo.copy({
 });
 ```
 
+```ts
+const redacted = tspo.copy(
+  { createdAt: new Date('2024-01-01T00:00:00.000Z') },
+  { resetDates: true },
+);
+// redacted.createdAt -> new Date() (time of copy call)
+```
+
+<a id="compare"></a>
 #### `.compare(T: object, U: object): boolean`
 
 Recursively compares 2 plain-objects but only arrays and plain-objects will be stepped into.

@@ -221,6 +221,15 @@ describe('Utilities', () => {
     expect(setTest).toBeTruthy();
   });
 
+  test('.copy with resetDates', () => {
+    const before = Date.now();
+    const userFullCopy = tspo.copy(UserFull, { resetDates: true });
+    const after = Date.now();
+    expect(userFullCopy.birthdate).not.toBe(UserFull.birthdate);
+    expect(userFullCopy.birthdate.getTime()).toBeGreaterThanOrEqual(before);
+    expect(userFullCopy.birthdate.getTime()).toBeLessThanOrEqual(after);
+  });
+
   test('.iterate', () => {
     const entries: Array<{ key: string | number; value: unknown }> = [];
 

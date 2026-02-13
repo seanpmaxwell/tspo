@@ -1,7 +1,7 @@
 {
   "name": "tspo",
   "version": "1.0.0",
-  "description": "is a collection of utilities for handling both runtime and compile-time behavior for plain-objects.",
+  "description": "A collection of utilities for handling both runtime and compile-time behavior for plain-objects.",
   "keywords": [
     "typescript",
     "javascript",
@@ -32,8 +32,14 @@
   },
   "license": "MIT",
   "author": "seanpmaxwell",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "browser": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rm -rf ./dist && tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json && tsc -p tsconfig.types.json",
     "clean-install": "rm -rf ./node_modules && rm -r package-lock.json && npm i",

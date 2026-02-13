@@ -6,41 +6,62 @@ import { type Mutable } from '../utility-types.js';
 
 const hop = Object.prototype.hasOwnProperty;
 
+type CopyOptions = {
+  resetDates?: boolean;
+};
+
 /**
  * Deep clones ONLY plain-objects (incl. null-prototype).
  *
  * - Root value must be a plain-object.
  * - Recursion descends only into plain-objects and arrays.
  * - Nested Date values are copied by epoch.
+ * - `resetDates` resets all nested Date values to current time.
  * - Other nested non-plain objects are shallow-cloned.
  */
-function copy<T extends PlainObject>(value: T): Mutable<T> {
+function copy<T extends PlainObject>(
+  value: T,
+  options?: CopyOptions,
+): Mutable<T> {
   if (!isPlainObject(value)) {
     throw new TypeError('copy only accepts a plain-object as the root value');
   }
+  const resetDates = options?.resetDates === true;
   return clonePlainObject(
     value as Dict,
     Object.getPrototypeOf(value),
+    resetDates,
   ) as Mutable<T>;
 }
 
-function clonePlainObject(source: object, proto: object | null): Dict {
+function clonePlainObject(
+  source: object,
+  proto: object | null,
+  resetDates: boolean,
+): Dict {
   const out: Dict = proto === null ? Object.create(null) : {};
   for (const key in source) {
     if (!hop.call(source, key)) continue;
-    out[key] = cloneValue((source as Dict)[key]);
+    out[key] = cloneValue((source as Dict)[key], resetDates);
   }
   return out;
 }
 
-function cloneValue(value: unknown): unknown {
+function cloneValue(value: unknown, resetDates: boolean): unknown {
   if (isPlainObject(value)) {
-    return clonePlainObject(value as Dict, Object.getPrototypeOf(value));
+    return clonePlainObject(
+      value as Dict,
+      Object.getPrototypeOf(value),
+      resetDates,
+    );
   }
   if (Array.isArray(value)) {
-    return cloneArray(value);
+    return cloneArray(value, resetDates);
   }
   if (value instanceof Date) {
+    if (resetDates) {
+      return new Date();
+    }
     return new Date(value.getTime());
   }
   if (typeof value === 'object' && value !== null) {
@@ -49,11 +70,14 @@ function cloneValue(value: unknown): unknown {
   return value;
 }
 
-function cloneArray(source: readonly unknown[]): unknown[] {
+function cloneArray(
+  source: readonly unknown[],
+  resetDates: boolean,
+): unknown[] {
   const len = source.length;
   const out = new Array(len);
   for (let i = 0; i < len; i++) {
-    out[i] = cloneValue(source[i]);
+    out[i] = cloneValue(source[i], resetDates);
   }
   return out;
 }

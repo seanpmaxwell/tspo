@@ -836,6 +836,27 @@ describe('tspo.copy', () => {
     expect(out.date.getTime()).toBe(src.date.getTime());
   });
 
+  test('should reset nested Date values when resetDates is true', () => {
+    const src = {
+      date: new Date('2024-01-01T00:00:00.000Z'),
+      nested: { date: new Date('2024-01-02T00:00:00.000Z') },
+      arr: [new Date('2024-01-03T00:00:00.000Z')],
+    };
+    const before = Date.now();
+    const out = tspo.copy(src, { resetDates: true });
+    const after = Date.now();
+
+    expect(out.date).not.toBe(src.date);
+    expect(out.date.getTime()).toBeGreaterThanOrEqual(before);
+    expect(out.date.getTime()).toBeLessThanOrEqual(after);
+    expect(out.nested.date).not.toBe(src.nested.date);
+    expect(out.nested.date.getTime()).toBeGreaterThanOrEqual(before);
+    expect(out.nested.date.getTime()).toBeLessThanOrEqual(after);
+    expect(out.arr[0]).not.toBe(src.arr[0]);
+    expect(out.arr[0].getTime()).toBeGreaterThanOrEqual(before);
+    expect(out.arr[0].getTime()).toBeLessThanOrEqual(after);
+  });
+
   test('should shallow-clone nested Map and Set values', () => {
     const keyRef = { id: 1 };
     const valueRef = { name: 'Ada' };
