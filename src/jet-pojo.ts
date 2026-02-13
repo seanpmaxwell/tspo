@@ -1,5 +1,6 @@
 import isPlainObject, { type Dict, type PlainObject } from './isPlainObject.js';
 import type {
+  DeepWiden,
   EntriesTuple,
   KeysParam,
   KeyTuple,
@@ -69,7 +70,7 @@ function pick<T extends PlainObject, K extends KeysParam<T>>(
 function merge<T extends PlainObject, U extends PlainObject>(
   a: T,
   b: U,
-): CollapseType<Mutable<Omit<T, keyof T> & U>> {
+): CollapseType<Mutable<Omit<T, keyof U> & U>> {
   return { ...a, ...b };
 }
 
@@ -77,11 +78,11 @@ function merge<T extends PlainObject, U extends PlainObject>(
  * Fill the missing entries in a partial, will the values from a 'defaults'
  * object.
  */
-function fill<T extends object>(
-  defaults: Mutable<T>,
-  partial?: Partial<Mutable<T>> | null,
-): CollapseType<Mutable<T>> {
-  return { ...defaults, ...(partial ?? {}) };
+function fill<const T extends object>(
+  defaults: T,
+  partial?: Partial<DeepWiden<T>>,
+): CollapseType<Mutable<DeepWiden<T>>> {
+  return { ...defaults, ...(partial ?? {}) } as Mutable<DeepWiden<T>>;
 }
 
 /**

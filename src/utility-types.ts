@@ -25,7 +25,7 @@ export type Mutable<T> = {
   -readonly [K in keyof T]: T[K];
 };
 
-// -- Optional -- //
+// -- Set/Remove 'never' keys -- //
 
 export type SetToNever<T, K extends PropertyKey> = T & {
   [P in K]: never;
@@ -60,8 +60,32 @@ type Entries<T extends object> = {
   [K in keyof T]-?: [K, T[K]];
 }[keyof T];
 
-// -- Other Tuples -- //
-
 export type EntriesTuple<T extends object> = UnionToTuple<Entries<T>>;
 export type KeyTuple<T extends object> = UnionToTuple<keyof T>;
 export type ValueTuple<T extends object> = UnionToTuple<T[keyof T]>;
+
+// -- Deep Widen -- //
+
+type Primitive = string | number | boolean | bigint | symbol | null | undefined;
+
+type WidenPrimitive<T> = T extends string
+  ? string
+  : T extends number
+    ? number
+    : T extends boolean
+      ? boolean
+      : T extends bigint
+        ? bigint
+        : T extends symbol
+          ? symbol
+          : T;
+
+export type DeepWiden<T> = T extends Primitive
+  ? WidenPrimitive<T>
+  : T extends (...args: any[]) => any
+    ? T
+    : T extends readonly (infer U)[]
+      ? DeepWiden<U>[]
+      : T extends object
+        ? { [K in keyof T]: DeepWiden<T[K]> }
+        : T;
