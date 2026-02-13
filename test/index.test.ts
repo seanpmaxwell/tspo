@@ -219,7 +219,27 @@ describe('Utilities', () => {
     expect(setTest).toBeTruthy();
   });
 
-  // Codex go here
+  test('.iterate', () => {
+    const entries: Array<{ key: string | number; value: unknown }> = [];
+
+    pojo.iterate(UserFull, ({ key, value }) => {
+      entries.push({ key, value });
+    });
+
+    expect(entries).toStrictEqual([
+      { key: 'id', value: 1 },
+      { key: 'birthdate', value: UserFull.birthdate },
+      { key: 'street', value: '123 fake st' },
+      { key: 'city', value: 'seattle' },
+      { key: 'name', value: 'USA' },
+      { key: 'code', value: 1 },
+      { key: 0, value: 'janitor' },
+      { key: 'company', value: 'Lowes' },
+      { key: 'role', value: 'sales associate' },
+      { key: 'otherRoles', value: UserFull.jobHistory[1].otherRoles },
+      { key: 'sayHello', value: UserFull.sayHello },
+    ]);
+  });
 });
 
 /**
