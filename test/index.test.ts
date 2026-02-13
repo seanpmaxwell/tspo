@@ -240,6 +240,30 @@ describe('Utilities', () => {
       { key: 'sayHello', value: UserFull.sayHello },
     ]);
   });
+
+  test('.compare', () => {
+    const roles = new Set(['fork-lift driver', 'cashier']);
+    const a = {
+      id: 1,
+      birthdate: new Date('2024-01-01T00:00:00.000Z'),
+      address: { city: 'seattle' },
+      roles,
+    };
+    const b = {
+      id: 1,
+      birthdate: new Date('2024-01-01T00:00:00.000Z'),
+      address: { city: 'seattle' },
+      roles,
+    };
+    const c = {
+      id: 1,
+      birthdate: new Date('2024-01-01T00:00:00.000Z'),
+      address: { city: 'seattle' },
+      roles: new Set(['fork-lift driver', 'cashier']),
+    };
+    expect(pojo.compare(a, b)).toBe(true);
+    expect(pojo.compare(a, c)).toBe(false);
+  });
 });
 
 /**
