@@ -1,4 +1,4 @@
-import isPlainObject from './helpers/isPlainObject.js';
+import isPlainObject, { type PlainObject } from './helpers/isPlainObject.js';
 import type {
   AddEntries,
   DeepWiden,
@@ -12,7 +12,6 @@ import type {
   MergeArray,
   OmitKeys,
   PickKeys,
-  PlainObject,
   SetToNever,
   ValueTuple,
 } from './helpers/utility-types.js';

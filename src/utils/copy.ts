@@ -1,6 +1,5 @@
-import type { Dict, Mutable, PlainObject } from 'src/helpers/utility-types.js';
-
-import isPlainObject from '../helpers/isPlainObject.js';
+import isPlainObject, { type PlainObject } from '../helpers/isPlainObject.js';
+import type { Dict, Mutable } from '../helpers/utility-types.js';
 
 /******************************************************************************
                                   Constants
@@ -49,6 +48,8 @@ function copy<T extends PlainObject>(
 }
 
 /**
+ * @private
+ *
  * Clone a plain-object.
  */
 function clonePlainObject(
@@ -66,6 +67,8 @@ function clonePlainObject(
 }
 
 /**
+ * @private
+ *
  * Clone non plain-object value.
  */
 function cloneValue(
@@ -100,6 +103,8 @@ function cloneValue(
 }
 
 /**
+ * @private
+ *
  * Clone an array.
  */
 function cloneArray(
@@ -116,6 +121,8 @@ function cloneArray(
 }
 
 /**
+ * @private
+ *
  * Shallow clone non-plain non-array object.
  */
 function cloneNonPlainShallow<T>(value: T): T {
@@ -139,6 +146,8 @@ function cloneNonPlainShallow<T>(value: T): T {
 }
 
 /**
+ * @private
+ *
  * Deep clone non-plain non-array object.
  */
 function cloneNonPlainDeep<T>(value: T, resetDates: boolean): T {
@@ -182,6 +191,8 @@ function cloneNonPlainDeep<T>(value: T, resetDates: boolean): T {
 }
 
 /**
+ * @private
+ *
  * Clone an ArrayBuffer view.
  */
 function cloneArrayBufferView<T>(value: T): T | undefined {

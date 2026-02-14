@@ -1,6 +1,4 @@
-import type { PlainObject } from 'src/helpers/utility-types.js';
-
-import isPlainObject from '../helpers/isPlainObject.js';
+import isPlainObject, { type PlainObject } from '../helpers/isPlainObject.js';
 
 /******************************************************************************
                                      Constants                                   

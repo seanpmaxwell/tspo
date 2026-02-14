@@ -1,7 +1,7 @@
+import type { PlainObject } from './helpers/isPlainObject.js';
 import type {
   KeysParam,
   KeyUnion,
-  PlainObject,
   SetToNever,
 } from './helpers/utility-types.js';
 import tspo from './tspo.js';

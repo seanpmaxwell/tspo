@@ -1,10 +1,9 @@
-import type { PlainObject } from './utility-types';
-
 /******************************************************************************
-                                  Constants                                    
+                                  Constants/Types                                    
 ******************************************************************************/
 
 const objectProto = Object.prototype;
+export type PlainObject = NonNullable<object>;
 
 /******************************************************************************
                                      Functions                                    

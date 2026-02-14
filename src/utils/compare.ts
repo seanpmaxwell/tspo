@@ -1,6 +1,5 @@
-import type { Dict, PlainObject } from 'src/helpers/utility-types.js';
-
-import isPlainObject from '../helpers/isPlainObject.js';
+import isPlainObject, { type PlainObject } from '../helpers/isPlainObject.js';
+import type { Dict } from '../helpers/utility-types.js';
 
 /******************************************************************************
                                   Constants
@@ -29,6 +28,8 @@ function compare(a: PlainObject, b: PlainObject): boolean {
 }
 
 /**
+ * @private
+ *
  * Compare plain-objects.
  */
 function comparePlainObjects(a: PlainObject, b: PlainObject): boolean {
@@ -47,6 +48,8 @@ function comparePlainObjects(a: PlainObject, b: PlainObject): boolean {
 }
 
 /**
+ * @private
+ *
  * Compare values
  */
 function compareValue(a: unknown, b: unknown): boolean {
@@ -83,6 +86,8 @@ function compareValue(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * @private
+ *
  * Compare arrays
  */
 function compareArrays(a: readonly unknown[], b: readonly unknown[]): boolean {

@@ -1,10 +1,11 @@
+import type { PlainObject } from './isPlainObject';
+
 /******************************************************************************
                                        Types                                    
 ******************************************************************************/
 
 type Primitive = string | number | boolean | bigint | symbol | null | undefined;
 export type Dict = Record<string, unknown>;
-export type PlainObject = NonNullable<object>;
 
 // ------------------------ Simple-Utilities ------------------------------- //
 
@@ -13,11 +14,6 @@ export type KeysParam<T extends object> = keyof T | (keyof T)[];
 export type Mutable<T> = {
   -readonly [K in keyof T]: T[K];
 };
-
-// Must be defined in the file it is used in
-type CollapseType<T> = {
-  -readonly [K in keyof T]: T[K];
-} & {};
 
 // Resolve key or array of keys of 'T'
 export type KeyUnion<
@@ -42,15 +38,7 @@ export type Entry<T extends object> = T extends object
     }[keyof T]
   : never;
 
-// ---------------------------- Complex-Utilities -------------------------- //
-
-type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
-  x: infer I,
-) => void
-  ? I
-  : never;
-
-// -- Set/Remove 'never' keys -- //
+// -------------------- Set/Remove 'never' keys --------------------------- //
 
 export type SetToNever<T, K extends PropertyKey> = T & {
   [P in K]: never;
@@ -64,16 +52,22 @@ type NonNeverKeys<T extends object> = {
 // Pick only entries whose values are not `never`
 export type OmitNever<T extends object> = Pick<T, NonNeverKeys<T>>;
 
-// -- UnionToTuple -- //
+// ------------------------------ UnionToTuple ----------------------------- //
 
-type UnionToTuple<U, R extends any[] = []> = [U] extends [never]
-  ? R
-  : UnionToTuple<Exclude<U, LastOf<U>>, [LastOf<U>, ...R]>;
+type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
+  x: infer I,
+) => void
+  ? I
+  : never;
 
 type LastOf<U> =
   UnionToIntersection<U extends any ? () => U : never> extends () => infer L
     ? L
     : never;
+
+type UnionToTuple<U, R extends any[] = []> = [U] extends [never]
+  ? R
+  : UnionToTuple<Exclude<U, LastOf<U>>, [LastOf<U>, ...R]>;
 
 type Entries<T extends object> = {
   [K in keyof T]-?: [K, T[K]];
@@ -83,7 +77,7 @@ export type EntriesTuple<T extends object> = UnionToTuple<Entries<T>>;
 export type KeyTuple<T extends object> = UnionToTuple<keyof T>;
 export type ValueTuple<T extends object> = UnionToTuple<T[keyof T]>;
 
-// -- Deep Widen -- //
+// -------------------------- Deep Widen ----------------------------------- //
 
 type WidenPrimitive<T> = T extends string
   ? string
@@ -107,7 +101,7 @@ export type DeepWiden<T> = T extends Primitive
         ? { [K in keyof T]: DeepWiden<T[K]> }
         : T;
 
-// -- AddEntries -- //
+// ---------------------------- AddEntries --------------------------------- //
 
 export type EntryToAdd = readonly [PropertyKey, unknown];
 
@@ -121,7 +115,7 @@ export type AddEntries<
   >[1];
 };
 
-// -- MergeArray -- //
+// --------------------------- MergeArray ---------------------------------- //
 
 type UnionKeys<U extends object> = U extends unknown ? keyof U : never;
 
@@ -136,4 +130,6 @@ type MergeUnion<U extends object> = [UnionKeys<U>] extends [never]
       [K in UnionKeys<U>]: UnionValuesForKey<U, K>;
     };
 
-export type MergeArray<A extends readonly PlainObject[]> = MergeUnion<A[number]>;
+export type MergeArray<A extends readonly PlainObject[]> = MergeUnion<
+  A[number]
+>;
