@@ -91,10 +91,10 @@ Use this as a quick decision guide:
 
 ### Mutators
 
-| Function            | Notes                                       |
-| ------------------- | ------------------------------------------- |
-| [`append`](#append) | Adds keys from `addOn` to `obj`             |
-| [`remove`](#remove) | Deletes keys and refines deletes to `never` |
+| Function            | Notes                                        |
+| ------------------- | -------------------------------------------- |
+| [`append`](#append) | Merge one object into the original reference |
+| [`remove`](#remove) | Deletes keys and refines deletes to `never`  |
 
 ### Indexing
 
