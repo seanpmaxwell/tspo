@@ -1,6 +1,5 @@
-import type { Dict } from 'src/helpers/utility-types.js';
-
 import isPlainObject, { type PlainObject } from '../helpers/isPlainObject.js';
+import type { Dict } from '../helpers/utility-types.js';
 
 /******************************************************************************
                                   Constants
