@@ -1,6 +1,8 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import tspo, { type Dict, type OmitNever } from '../src';
+import tspo, { type OmitNever } from '../src';
+
+type Dict = Record<string, unknown>;
 
 describe('src/index.ts export contract', () => {
   test('should expose the documented default API surface', () => {

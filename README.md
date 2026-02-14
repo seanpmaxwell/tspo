@@ -14,11 +14,11 @@
 
 ## 🤔 What is a plain-object?
 
-A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)`.
+A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `NonNullable<object>`. Another useful type to make note of is _Dictionary_ (often abbreviated in code as `Dict`), which is a plain-object whose type is narrowed to `Record<string, unknown>`.
 
 3 ways to implement:
 
-- **object-literals:** (most-common), i.e `{ id: 1, name: 'john' }`
+- **object-literals:** (most-common), i.e `var user = { id: 1, name: 'john' }`
 - **Object constructor:** `var user = new Object()`
 - **null-prototype objects:** `var user = Object.create(null)`
 
@@ -27,8 +27,9 @@ A _plain-object_ in JavaScript is any object which inherits directly from the ba
 ## ❓Why tspo?
 
 - Small, zero-dependency utility set centered around plain-object workflows.
-- Runtime AND type-level guarantees in the same API surface.
-- Practical mutating helpers (`.append`, `.addEntry`, `.remove`) with assertion-based type refinement.
+- Avoid constantly having to caste your objects to dictonary types before manipulation them.
+- Runtime AND type-level safety in the same API surface.
+- Mutating utilities with assertion-based type refinement.
 - All complex-types collapsed for better IntelliSense.
 
 ## 📦 Installation
@@ -82,14 +83,15 @@ Use this as a quick decision guide:
 
 ### Object builders
 
-| Function                    | Notes                                     |
-| --------------------------- | ----------------------------------------- |
-| [`omit`](#omit)             | Returns object without selected keys      |
-| [`pick`](#pick)             | Returns object with selected keys         |
-| [`merge`](#merge)           | Returns `{...a, ...b}`                    |
-| [`fill`](#fill)             | Combines defaults with a partial override |
-| [`addEntry`](#addentry)     | Adds one `[key, value]` entry             |
-| [`addEntries`](#addentries) | Adds multiple `[key, value]` entries      |
+| Function                    | Notes                                        |
+| --------------------------- | -------------------------------------------- |
+| [`omit`](#omit)             | Returns object without selected keys         |
+| [`pick`](#pick)             | Returns object with selected keys            |
+| [`merge`](#merge)           | Returns `{...a, ...b}`                       |
+| [`mergeArray`](#mergearray) | Merge an array of objects to a single object |
+| [`fill`](#fill)             | Combines defaults with a partial override    |
+| [`addEntry`](#addentry)     | Adds one `[key, value]` entry                |
+| [`addEntries`](#addentries) | Adds multiple `[key, value]` entries         |
 
 ### Converting
 
@@ -98,7 +100,7 @@ Use this as a quick decision guide:
 | [`toDict`](#todict)      | Runtime plain-object guard and returns a `Dict` type              |
 | [`coerce<T>`](#tocoerce) | Runtime plain-object guard and returns the generic `T` you supply |
 
-### Object modifiers
+### Mutators
 
 | Function            | Notes                                       |
 | ------------------- | ------------------------------------------- |
@@ -179,6 +181,19 @@ const full = tspo.merge({ id: 1 }, { active: true });
 // Type:  { id: number; active: boolean }
 ```
 
+<a id="mergearray"></a>
+
+#### `.mergeArray(T: PlainObject[]): { ...T }`
+
+Returns a new object with every item from `T` merged into a single object.
+
+```ts
+// pick up here
+const full = tspo.merge({ id: 1 }, { active: true });
+// Value: { id: 1; active: true }
+// Type:  { id: number; active: boolean }
+```
+
 <a id="fill"></a>
 
 #### `.fill(T: object, partial?: Partial<T>): T`
@@ -226,18 +241,25 @@ const newDraft = tspo.addEntry(draft, [
 
 #### `.toDict(arg: unknown): Dict (Record<string, unknown>)`
 
-Validates that an argument is a plain-object and returns the original reference as a `Dict` type. Throws if not a plain-object.
-
-- Type `Dict (Record<string, unknown>)` is also exported in case you need it
+Throws if the argument is not a plain-object and returns the original reference as a `Dict` type.
 
 ```ts
-import { type Dict } from 'tspo';
-
 const draft = { id: 1, email: 'ada@example.com' };
-const rec: Dict = tspo.toDict(draft);
+const rec: Record<string, unknown> = tspo.toDict(draft);
 ```
 
-### Object modifiers
+<a id="coerce"></a>
+
+#### `.coerce<T extends PlainObject>(arg: unknown): T`
+
+Throws if the argument is not a plain-object and returns the original reference as the generic you pass.
+
+```ts
+const draft: unknown = { id: 1, email: 'ada@example.com' };
+const rec: IUser = tspo.coerce<IUser>(draft);
+```
+
+### Mutators
 
 - Functions which modify the provided object will mutate its type and value.
 - **DO NOT** set a return value from mutation functions or type-updating will not work.
@@ -251,25 +273,26 @@ Mutates `T` by copying enumerable keys from `U`. TypeScript narrows `T` to `T & 
 ```ts
 const draft = { id: 1 };
 tspo.append(draft, { name: 'Ada' });
+// Type `draft` is now:  { id: number; name: string }
 // Value: { id: 1, name: 'Ada' }
-// Type:  { id: number; name: string }
 ```
 
 <a id="remove"></a>
 
 #### `.remove(T: object, K: keyof T | Array<keyof T>): void`
 
-Mutates `T` and deletes one or more keys.  
-Because of TypeScript limitations, we cannot remove keys in place on `T` so we set them to `never`.
-If you want to clean the type after removing, use `OmitNever<T>`
+Mutates `T` and deletes one or more keys.
+
+- Because of TypeScript limitations, we cannot remove keys in place on `T` so we set them to `never`.
+- If you want to clean the type after removing, use `OmitNever<T>`
 
 ```ts
 const draft = { id: 1, email: 'ada@example.com' };
 tspo.remove(draft, 'email');
 type Clean = OmitNever<typeof draft>; // strips `never` keys
-// Value: { id: 1 }
-// Type `draft`: { id: number; email: never }
+// Type `draft` is now: { id: number; email: never }
 // Type `Clean`: { id: number }
+// Value: { id: 1 }
 ```
 
 ### Indexing

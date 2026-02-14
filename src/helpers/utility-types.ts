@@ -1,6 +1,23 @@
+/******************************************************************************
+                                       Types                                    
+******************************************************************************/
+
+type Primitive = string | number | boolean | bigint | symbol | null | undefined;
+export type Dict = Record<string, unknown>;
+export type PlainObject = NonNullable<object>;
+
 // ------------------------ Simple-Utilities ------------------------------- //
 
 export type KeysParam<T extends object> = keyof T | (keyof T)[];
+
+export type Mutable<T> = {
+  -readonly [K in keyof T]: T[K];
+};
+
+// Must be defined in the file it is used in
+type CollapseType<T> = {
+  -readonly [K in keyof T]: T[K];
+} & {};
 
 // Resolve key or array of keys of 'T'
 export type KeyUnion<
@@ -27,6 +44,12 @@ export type Entry<T extends object> = T extends object
 
 // ---------------------------- Complex-Utilities -------------------------- //
 
+type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
+  x: infer I,
+) => void
+  ? I
+  : never;
+
 // -- Set/Remove 'never' keys -- //
 
 export type SetToNever<T, K extends PropertyKey> = T & {
@@ -52,12 +75,6 @@ type LastOf<U> =
     ? L
     : never;
 
-type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
-  x: infer I,
-) => void
-  ? I
-  : never;
-
 type Entries<T extends object> = {
   [K in keyof T]-?: [K, T[K]];
 }[keyof T];
@@ -67,8 +84,6 @@ export type KeyTuple<T extends object> = UnionToTuple<keyof T>;
 export type ValueTuple<T extends object> = UnionToTuple<T[keyof T]>;
 
 // -- Deep Widen -- //
-
-type Primitive = string | number | boolean | bigint | symbol | null | undefined;
 
 type WidenPrimitive<T> = T extends string
   ? string
@@ -105,3 +120,14 @@ export type AddEntries<
     readonly [K[0], unknown]
   >[1];
 };
+
+// -- MergeArray -- //
+
+type UnionToIntersectionAlt<U> = (
+  U extends unknown ? (x: U) => void : never
+) extends (x: infer I) => void
+  ? I
+  : never;
+
+export type MergeArray<A extends readonly PlainObject[]> =
+  UnionToIntersectionAlt<A[number]>;

@@ -1,7 +1,6 @@
-import isPlainObject, {
-  type Dict,
-  type PlainObject,
-} from '../isPlainObject.js';
+import type { Dict, PlainObject } from 'src/helpers/utility-types.js';
+
+import isPlainObject from '../helpers/isPlainObject.js';
 
 /******************************************************************************
                                   Constants
@@ -24,7 +23,7 @@ const hop = Object.prototype.hasOwnProperty;
  */
 function compare(a: PlainObject, b: PlainObject): boolean {
   if (!isPlainObject(a) || !isPlainObject(b)) {
-    return false;
+    throw new Error('compare only works for plain-objects');
   }
   return comparePlainObjects(a, b);
 }

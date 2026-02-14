@@ -1,18 +1,25 @@
-import isPlainObject, {
-  type Dict,
-  type PlainObject,
-} from '../isPlainObject.js';
+import type { Dict, Mutable, PlainObject } from 'src/helpers/utility-types.js';
+
+import isPlainObject from '../helpers/isPlainObject.js';
+
+/******************************************************************************
+                                  Constants
+******************************************************************************/
 
 const hop = Object.prototype.hasOwnProperty;
 
-type CopyOptions = {
+/******************************************************************************
+                                     Types                                    
+******************************************************************************/
+
+interface CopyOptions {
   resetDates?: boolean;
   deepCloneAll?: boolean;
-};
+}
 
-type Mutable<T> = {
-  -readonly [K in keyof T]: T[K];
-};
+/******************************************************************************
+                                  Functions
+******************************************************************************/
 
 /**
  * Deep clones ONLY plain-objects (incl. null-prototype).
@@ -29,10 +36,10 @@ function copy<T extends PlainObject>(
   options?: CopyOptions,
 ): Mutable<T> {
   if (!isPlainObject(value)) {
-    throw new TypeError('copy only accepts a plain-object as the root value');
+    throw new TypeError('.copy only accepts a plain-object as the root value');
   }
-  const resetDates = options?.resetDates === true;
-  const deepCloneAll = options?.deepCloneAll === true;
+  const resetDates = options?.resetDates === true,
+    deepCloneAll = options?.deepCloneAll === true;
   return clonePlainObject(
     value as Dict,
     Object.getPrototypeOf(value),
@@ -41,6 +48,9 @@ function copy<T extends PlainObject>(
   ) as Mutable<T>;
 }
 
+/**
+ * Clone a plain-object.
+ */
 function clonePlainObject(
   source: object,
   proto: object | null,
@@ -55,6 +65,9 @@ function clonePlainObject(
   return out;
 }
 
+/**
+ * Clone non plain-object value.
+ */
 function cloneValue(
   value: unknown,
   resetDates: boolean,
@@ -86,19 +99,25 @@ function cloneValue(
   return value;
 }
 
+/**
+ * Clone an array.
+ */
 function cloneArray(
   source: readonly unknown[],
   resetDates: boolean,
   deepCloneAll: boolean,
 ): unknown[] {
-  const len = source.length;
-  const out = new Array(len);
+  const len = source.length,
+    out = new Array(len);
   for (let i = 0; i < len; i++) {
     out[i] = cloneValue(source[i], resetDates, deepCloneAll);
   }
   return out;
 }
 
+/**
+ * Shallow clone non-plain non-array object.
+ */
 function cloneNonPlainShallow<T>(value: T): T {
   if (value instanceof RegExp) {
     const re = new RegExp(value.source, value.flags);
@@ -107,25 +126,12 @@ function cloneNonPlainShallow<T>(value: T): T {
   }
   if (value instanceof Map) return new Map(value as any) as T;
   if (value instanceof Set) return new Set(value as any) as T;
-  if (ArrayBuffer.isView(value)) {
-    const anyVal: any = value as any;
-    if (typeof anyVal.slice === 'function') return anyVal.slice() as T;
-    if (value instanceof DataView) {
-      return new DataView(
-        value.buffer.slice(
-          value.byteOffset,
-          value.byteOffset + value.byteLength,
-        ),
-      ) as T;
-    }
-    return new (anyVal.constructor as any)(
-      value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength),
-    );
-  }
+  const clonedView = cloneArrayBufferView(value);
+  if (clonedView !== undefined) return clonedView;
   if (value instanceof ArrayBuffer) return value.slice(0) as T;
   // Generic non-plain object: shallow clone own enumerable props (values as-is)
-  const proto = Object.getPrototypeOf(value);
-  const out: any = Object.create(proto);
+  const proto = Object.getPrototypeOf(value),
+    out: any = Object.create(proto);
   for (const key in value as any) {
     if (hop.call(value, key)) out[key] = (value as any)[key];
   }
@@ -133,7 +139,7 @@ function cloneNonPlainShallow<T>(value: T): T {
 }
 
 /**
- *
+ * Deep clone non-plain non-array object.
  */
 function cloneNonPlainDeep<T>(value: T, resetDates: boolean): T {
   if (value instanceof RegExp) {
@@ -141,6 +147,7 @@ function cloneNonPlainDeep<T>(value: T, resetDates: boolean): T {
     re.lastIndex = value.lastIndex;
     return re as T;
   }
+  // Clone Map
   if (value instanceof Map) {
     const out = new Map();
     for (const [key, val] of value) {
@@ -151,6 +158,7 @@ function cloneNonPlainDeep<T>(value: T, resetDates: boolean): T {
     }
     return out as T;
   }
+  // Clone Set
   if (value instanceof Set) {
     const out = new Set();
     for (const entry of value) {
@@ -158,29 +166,40 @@ function cloneNonPlainDeep<T>(value: T, resetDates: boolean): T {
     }
     return out as T;
   }
-  if (ArrayBuffer.isView(value)) {
-    const anyVal: any = value as any;
-    if (typeof anyVal.slice === 'function') return anyVal.slice() as T;
-    if (value instanceof DataView) {
-      return new DataView(
-        value.buffer.slice(
-          value.byteOffset,
-          value.byteOffset + value.byteLength,
-        ),
-      ) as T;
-    }
-    return new (anyVal.constructor as any)(
-      value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength),
-    );
-  }
+  // Clone ArrayBuffers
+  const clonedView = cloneArrayBufferView(value);
+  if (clonedView !== undefined) return clonedView;
   if (value instanceof ArrayBuffer) return value.slice(0) as T;
-  const proto = Object.getPrototypeOf(value);
-  const out: any = Object.create(proto);
+  // Clone all others
+  const proto = Object.getPrototypeOf(value),
+    out: any = Object.create(proto);
   for (const key in value as any) {
     if (!hop.call(value, key)) continue;
     out[key] = cloneValue((value as any)[key], resetDates, true);
   }
+  // Return
   return out as T;
 }
+
+/**
+ * Clone an ArrayBuffer view.
+ */
+function cloneArrayBufferView<T>(value: T): T | undefined {
+  if (!ArrayBuffer.isView(value)) return undefined;
+  const anyVal: any = value as any;
+  if (typeof anyVal.slice === 'function') return anyVal.slice() as T;
+  if (value instanceof DataView) {
+    return new DataView(
+      value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength),
+    ) as T;
+  }
+  return new (anyVal.constructor as any)(
+    value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength),
+  ) as T;
+}
+
+/******************************************************************************
+                                  Functions
+******************************************************************************/
 
 export default copy;

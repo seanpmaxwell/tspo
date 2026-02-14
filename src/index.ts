@@ -1,6 +1,10 @@
-import { type Dict, type PlainObject } from './isPlainObject.js';
+import type {
+  KeysParam,
+  KeyUnion,
+  PlainObject,
+  SetToNever,
+} from './helpers/utility-types.js';
 import tspo from './tspo.js';
-import type { KeysParam, KeyUnion, SetToNever } from './utility-types.js';
 
 /******************************************************************************
                                    Types                                  
@@ -43,6 +47,5 @@ const typedTspo: Readonly<typeof tspo> & {
                                    Export                                  
 ******************************************************************************/
 
-export { type OmitNever } from './utility-types.js';
-export { type Dict } from './isPlainObject.js';
+export { type OmitNever } from './helpers/utility-types.js';
 export default typedTspo;

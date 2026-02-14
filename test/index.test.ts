@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import tspo, { type Dict, type OmitNever } from '../src';
+import tspo, { type OmitNever } from '../src';
 
 /******************************************************************************
                                   Dummy Data
@@ -54,9 +54,14 @@ describe('Building', () => {
     expect(userDog).toStrictEqual({ ...User, ...Dog });
   });
 
+  test('.mergeArray', () => {
+    const userDog = tspo.mergeArray([User, Dog, { player: 'team' }]);
+    expect(userDog).toStrictEqual({ ...User, ...Dog, player: 'team' });
+  });
+
   test('.fill', () => {
-    const userDog = tspo.fill(User, { id: 2 });
-    expect(userDog).toStrictEqual({ ...User, id: 2 });
+    const userFull = tspo.fill(User, { id: 2 });
+    expect(userFull).toStrictEqual({ ...User, id: 2 });
   });
 
   test('.addEntry', () => {
@@ -78,7 +83,7 @@ describe('Building', () => {
 describe('Converting', () => {
   test('.toDict', () => {
     const draft = { id: 1, email: 'ada@example.com' };
-    const rec: Dict = tspo.toDict(draft);
+    const rec = tspo.toDict(draft);
     rec.horse = 'cow';
     delete rec.animal;
     // Type `draft`: Dict (Record<string, unknown>)
