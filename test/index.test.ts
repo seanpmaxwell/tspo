@@ -34,7 +34,7 @@ const Dog = {
                                 Test
 ******************************************************************************/
 
-describe('Returning new object', () => {
+describe('Building', () => {
   test('.omit', () => {
     const omit1 = tspo.omit(User, 'id');
     expect(omit1).toStrictEqual({ name: User.name, email: User.email });
@@ -58,6 +58,37 @@ describe('Returning new object', () => {
     const userDog = tspo.fill(User, { id: 2 });
     expect(userDog).toStrictEqual({ ...User, id: 2 });
   });
+
+  test('.addEntry', () => {
+    const newUser = tspo.addEntry(User, ['address', '123 fake st']);
+    expect(newUser).toStrictEqual({ ...User, address: '123 fake st' });
+  });
+
+  test('.addEntries', () => {
+    const newUser = tspo.addEntries(User, [
+      ['address', '123 fake st'],
+      ['age', 5],
+    ]);
+    expect(newUser).toStrictEqual({ ...User, address: '123 fake st', age: 5 });
+  });
+});
+
+// -- Converting -- //
+
+describe('Converting', () => {
+  test('.toDict', () => {
+    const draft = { id: 1, email: 'ada@example.com' };
+    const rec: Dict = tspo.toDict(draft);
+    rec.horse = 'cow';
+    delete rec.animal;
+    // Type `draft`: Dict (Record<string, unknown>)
+  });
+
+  test('.coerce', () => {
+    const draft = {};
+    const rec = tspo.coerce<IUser>(draft);
+    rec.id = 5;
+  });
 });
 
 // -- Mutating -- //
@@ -70,12 +101,6 @@ describe('Mutating', () => {
     expect(user).toStrictEqual({ ...User, ...Dog });
   });
 
-  test('.appendOne', () => {
-    const user: IUser = { ...User };
-    tspo.appendOne(user, ['address', '123 fake st']);
-    expect(user).toStrictEqual({ ...User, address: '123 fake st' });
-  });
-
   test('.remove', () => {
     const user = { ...User };
     tspo.remove(user, ['id', 'email']);
@@ -86,14 +111,6 @@ describe('Mutating', () => {
     tspo.remove(user2, 'email');
     type tuser2 = OmitNever<typeof user2>;
     expect(user2).toStrictEqual({ id: User.id, name: User.name });
-  });
-
-  test('.toDict', () => {
-    const draft = { id: 1, email: 'ada@example.com' };
-    const rec: Dict = tspo.toDict(draft);
-    rec.horse = 'cow';
-    delete rec.animal;
-    // Type `draft`: Dict (Record<string, unknown>)
   });
 });
 

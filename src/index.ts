@@ -18,7 +18,7 @@ type Append = <T extends PlainObject, U extends PlainObject>(
 ) => asserts obj is CollapseType<T & U>;
 
 // 'asserts' requires explicity type-definition
-type AppendOne = <T extends PlainObject, K extends string, V>(
+type AddEntry = <T extends PlainObject, K extends string, V>(
   obj: T,
   entry: [K, V],
 ) => asserts obj is CollapseType<T & Record<K, V>>;
@@ -29,17 +29,14 @@ type Remove = <T extends PlainObject, K extends KeysParam<T>>(
   keys: K,
 ) => asserts obj is CollapseType<SetToNever<T, KeyUnion<T, K>>>;
 
-type ToDict = (obj: unknown) => Dict;
-
 /******************************************************************************
                                   Constants                                  
 ******************************************************************************/
 
 const typedTspo: Readonly<typeof tspo> & {
   readonly append: Append;
-  readonly appendOne: AppendOne;
+  readonly addEntry: AddEntry;
   readonly remove: Remove;
-  readonly toDict: ToDict;
 } = tspo;
 
 /******************************************************************************

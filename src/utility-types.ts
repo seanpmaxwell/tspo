@@ -91,3 +91,17 @@ export type DeepWiden<T> = T extends Primitive
       : T extends object
         ? { [K in keyof T]: DeepWiden<T[K]> }
         : T;
+
+// -- AddEntries -- //
+
+export type EntryToAdd = readonly [PropertyKey, unknown];
+
+export type AddEntries<
+  T extends object,
+  Entries extends readonly EntryToAdd[],
+> = T & {
+  [K in Entries[number] as K[0]]: Extract<
+    Entries[number],
+    readonly [K[0], unknown]
+  >[1];
+};

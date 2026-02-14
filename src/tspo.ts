@@ -1,8 +1,10 @@
 import isPlainObject, { type Dict, type PlainObject } from './isPlainObject.js';
 import type {
+  AddEntries,
   DeepWiden,
   EntriesTuple,
   Entry,
+  EntryToAdd,
   KeysParam,
   KeyTuple,
   KeyUnion,
@@ -106,6 +108,32 @@ function fill<const T extends object>(
 }
 
 /**
+ * Append a single entry to an object.
+ */
+function addEntry<T extends PlainObject, K extends string, V>(
+  obj: T,
+  entry: [K, V],
+): CollapseType<T & Record<K, V>> {
+  (obj as Dict)[entry[0]] = entry[1];
+  return obj as T & Record<K, V>;
+}
+
+/**
+ * Append a single entry to an object.
+ */
+function addEntries<
+  T extends PlainObject,
+  const E extends readonly EntryToAdd[],
+>(obj: T, entries: E): CollapseType<DeepWiden<AddEntries<T, E>>> {
+  return {
+    ...obj,
+    ...Object.fromEntries(
+      entries as readonly (readonly [PropertyKey, unknown])[],
+    ),
+  } as any;
+}
+
+/**
  * Append one object to another, modifying the reference to the original
  * object.
  */
@@ -116,16 +144,6 @@ function append<T extends PlainObject, U extends PlainObject>(
   for (const key in addOn) {
     (obj as Dict)[key] = (addOn as Dict)[key];
   }
-}
-
-/**
- * Append a single entry to an object.
- */
-function appendOne<T extends PlainObject, K extends string, V>(
-  obj: T,
-  entry: [K, V],
-): asserts obj is CollapseType<T & Record<K, V>> {
-  (obj as Dict)[entry[0]] = entry[1];
 }
 
 /**
@@ -240,6 +258,14 @@ function isValue<T extends object>(obj: T, arg: unknown): arg is T[keyof T] {
 }
 
 /**
+ * @private
+ * @see isValue
+ */
+function sameValueZero(a: unknown, b: unknown): boolean {
+  return a === b || (a !== a && b !== b);
+}
+
+/**
  * Get a type-safe array of the object keys.
  */
 function keys<T extends object>(obj: T): KeyTuple<T> {
@@ -273,18 +299,24 @@ function firstEntry<T extends object>(obj: T): Entry<T> {
   return undefined as unknown as Entry<T>;
 }
 
-function sameValueZero(a: unknown, b: unknown): boolean {
-  return a === b || (a !== a && b !== b);
+/**
+ * Check if something is a plain
+ */
+function toDict(obj: PlainObject): Dict {
+  if (!isPlainObject(obj)) {
+    throw new Error('value passed to ".toDict" was not a plain-object');
+  }
+  return obj as Dict;
 }
 
 /**
  * Check if something is a plain
  */
-function toDict(obj: unknown): Dict {
+function coerce<T extends PlainObject>(obj: PlainObject): T {
   if (!isPlainObject(obj)) {
-    throw new Error('value passed to ".toDict" not a plain-object');
+    throw new Error('value passed to ".coerce" was not a plain-object');
   }
-  return obj as Dict;
+  return obj as T;
 }
 
 /******************************************************************************
@@ -297,10 +329,12 @@ export default {
   merge,
   fill,
   append,
-  appendOne,
+  addEntry,
+  addEntries,
   index,
   remove,
   toDict,
+  coerce,
   safeIndex,
   reverseIndex,
   safeReverseIndex,

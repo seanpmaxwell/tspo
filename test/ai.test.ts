@@ -10,7 +10,7 @@ describe('src/index.ts export contract', () => {
       'merge',
       'fill',
       'append',
-      'appendOne',
+      'addEntry',
       'index',
       'remove',
       'toDict',
@@ -108,7 +108,7 @@ describe('tspo.toDict', () => {
     expect(() => tspo.toDict(new Date())).toThrowError(
       'value passed to ".toDict" not a plain-object',
     );
-    expect(() => tspo.toDict([1, 2, 3] as unknown)).toThrowError(
+    expect(() => tspo.toDict([1, 2, 3])).toThrowError(
       'value passed to ".toDict" not a plain-object',
     );
   });
@@ -356,12 +356,12 @@ describe('tspo.append', () => {
   });
 });
 
-describe('tspo.appendOne', () => {
+describe('tspo.addEntry', () => {
   test('should mutate target object by adding one entry', () => {
     const target = { a: 1 };
     const ref = target;
 
-    tspo.appendOne(target, ['b', 2]);
+    tspo.addEntry(target, ['b', 2]);
 
     expect(target).toEqual({ a: 1, b: 2 });
     expect(target).toBe(ref);
@@ -369,7 +369,7 @@ describe('tspo.appendOne', () => {
 
   test('should overwrite existing keys', () => {
     const target = { a: 1 };
-    tspo.appendOne(target, ['a', 9]);
+    tspo.addEntry(target, ['a', 9]);
 
     expect(target).toEqual({ a: 9 });
   });
@@ -377,7 +377,7 @@ describe('tspo.appendOne', () => {
   test('should define __proto__ behavior explicitly', () => {
     const target: Record<string, unknown> = {};
 
-    tspo.appendOne(target, ['__proto__', { hacked: 1 }] as any);
+    tspo.addEntry(target, ['__proto__', { hacked: 1 }] as any);
 
     expect((target as any).hacked).toBe(1);
     expect(Object.prototype.hasOwnProperty.call(target, '__proto__')).toBe(

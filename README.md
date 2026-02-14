@@ -28,7 +28,7 @@ A _plain-object_ in JavaScript is any object which inherits directly from the ba
 
 - Small, zero-dependency utility set centered around plain-object workflows.
 - Runtime AND type-level guarantees in the same API surface.
-- Practical mutating helpers (`.append`, `.appendOne`, `.remove`) with assertion-based type refinement.
+- Practical mutating helpers (`.append`, `.addEntry`, `.remove`) with assertion-based type refinement.
 - All complex-types collapsed for better IntelliSense.
 
 ## 📦 Installation
@@ -82,20 +82,28 @@ Use this as a quick decision guide:
 
 ### Object builders
 
-| Function          | Notes                                     |
-| ----------------- | ----------------------------------------- |
-| [`omit`](#omit)   | Returns object without selected keys      |
-| [`pick`](#pick)   | Returns object with selected keys         |
-| [`merge`](#merge) | Returns `{...a, ...b}`                    |
-| [`fill`](#fill)   | Combines defaults with a partial override |
+| Function                    | Notes                                     |
+| --------------------------- | ----------------------------------------- |
+| [`omit`](#omit)             | Returns object without selected keys      |
+| [`pick`](#pick)             | Returns object with selected keys         |
+| [`merge`](#merge)           | Returns `{...a, ...b}`                    |
+| [`fill`](#fill)             | Combines defaults with a partial override |
+| [`addEntry`](#addentry)     | Adds one `[key, value]` entry             |
+| [`addEntries`](#addentries) | Adds multiple `[key, value]` entries      |
+
+### Converting
+
+| Function                 | Notes                                                             |
+| ------------------------ | ----------------------------------------------------------------- |
+| [`toDict`](#todict)      | Runtime plain-object guard and returns a `Dict` type              |
+| [`coerce<T>`](#tocoerce) | Runtime plain-object guard and returns the generic `T` you supply |
 
 ### Object modifiers
 
-| Function                  | Notes                                       |
-| ------------------------- | ------------------------------------------- |
-| [`append`](#append)       | Adds keys from `addOn` to `obj`             |
-| [`appendOne`](#appendone) | Adds one `[key, value]` entry               |
-| [`remove`](#remove)       | Deletes keys and refines deletes to `never` |
+| Function            | Notes                                       |
+| ------------------- | ------------------------------------------- |
+| [`append`](#append) | Adds keys from `addOn` to `obj`             |
+| [`remove`](#remove) | Deletes keys and refines deletes to `never` |
 
 ### Indexing
 
@@ -108,12 +116,11 @@ Use this as a quick decision guide:
 
 ### Validator functions
 
-| Function              | Notes                                                |
-| --------------------- | ---------------------------------------------------- |
-| [`is`](#is)           | Runtime plain-object guard                           |
-| [`toDict`](#todict)   | Runtime plain-object guard and returns a `Dict` type |
-| [`isKey`](#iskey)     | Type guard for existing key                          |
-| [`isValue`](#isvalue) | Type guard for existing value                        |
+| Function              | Notes                         |
+| --------------------- | ----------------------------- |
+| [`is`](#is)           | Runtime plain-object guard    |
+| [`isKey`](#iskey)     | Type guard for existing key   |
+| [`isValue`](#isvalue) | Type guard for existing value |
 
 ### Collections
 
@@ -184,6 +191,52 @@ const config = tspo.fill({ retries: 3, timeoutMs: 5000 }, { timeoutMs: 8000 });
 // Type:  { retries: number; timeoutMs: number }
 ```
 
+<a id="addentry"></a>
+
+#### `.addEntry(T: object, entry: [K, V]): T & { K: V }`
+
+Returns a new object by adding a single entry to `T`.
+
+```ts
+const draft = { id: 1 };
+const newDraft = tspo.addEntry(draft, ['team', 'platform']);
+// Value: { id: 1, team: 'platform' }
+// Type:  { id: number; team: string }
+```
+
+<a id="addentries"></a>
+
+#### `.addEntries(T: object, entries: [K, V][]): T & { [P in K]: V }`
+
+Returns a new object by adding multiple entries to `T`.
+
+```ts
+const draft = { id: 1 };
+const newDraft = tspo.addEntry(draft, [
+  ['team', 'one'],
+  ['players', 5],
+]);
+// Value: { id: 1, team: 'one', players: 5 }
+// Type:  { id: number; team: string; players: number  }
+```
+
+### Converting
+
+<a id="todict"></a>
+
+#### `.toDict(arg: unknown): Dict (Record<string, unknown>)`
+
+Validates that an argument is a plain-object and returns the original reference as a `Dict` type. Throws if not a plain-object.
+
+- Type `Dict (Record<string, unknown>)` is also exported in case you need it
+
+```ts
+import { type Dict } from 'tspo';
+
+const draft = { id: 1, email: 'ada@example.com' };
+const rec: Dict = tspo.toDict(draft);
+```
+
 ### Object modifiers
 
 - Functions which modify the provided object will mutate its type and value.
@@ -200,19 +253,6 @@ const draft = { id: 1 };
 tspo.append(draft, { name: 'Ada' });
 // Value: { id: 1, name: 'Ada' }
 // Type:  { id: number; name: string }
-```
-
-<a id="appendone"></a>
-
-#### `.appendOne(T: object, entry: [key, value]): void`
-
-Mutates `T` by adding a single entry. TypeScript narrows `T` to `T & { key: value }`.
-
-```ts
-const draft = { id: 1 };
-tspo.appendOne(draft, ['team', 'platform']);
-// Value: { id: 1, team: 'platform' }
-// Type:  { id: number; team: string }
 ```
 
 <a id="remove"></a>
@@ -297,21 +337,6 @@ tspo.is({ a: 1 }); // true
 tspo.is(Object.create(null)); // true
 tspo.is([]); // false
 tspo.is(new Date()); // false
-```
-
-<a id="todict"></a>
-
-#### `.toDict(arg: unknown): Dict (Record<string, unknown>)`
-
-Validates that an argument is a plain-object and returns the original reference as a `Dict` type. Throws if not a plain-object.
-
-- Type `Dict (Record<string, unknown>)` is also exported in case you need it
-
-```ts
-import { type Dict } from 'tspo';
-
-const draft = { id: 1, email: 'ada@example.com' };
-const rec: Dict = tspo.toDict(draft);
 ```
 
 <a id="iskey"></a>
