@@ -2,8 +2,6 @@ import { describe, expect, test, vi } from 'vitest';
 
 import tspo, { type OmitNever } from '../src';
 
-type Dict = Record<string, unknown>;
-
 describe('src/index.ts export contract', () => {
   test('should expose the documented default API surface', () => {
     expect(Object.keys(tspo)).toEqual([
@@ -17,8 +15,6 @@ describe('src/index.ts export contract', () => {
       'addEntries',
       'index',
       'remove',
-      'toDict',
-      'coerce',
       'safeIndex',
       'reverseIndex',
       'safeReverseIndex',
@@ -87,54 +83,6 @@ describe('tspo.is', () => {
   test('should return false when Symbol.toStringTag exists', () => {
     const withTag = { [Symbol.toStringTag]: 'Tagged' };
     expect(tspo.is(withTag)).toBe(false);
-  });
-});
-
-describe('tspo.toDict', () => {
-  test('should return the same reference for plain objects', () => {
-    const src = { a: 1 };
-    const out = tspo.toDict(src);
-
-    expect(out).toBe(src);
-    const rec: Dict = out;
-    expect(rec.a).toBe(1);
-  });
-
-  test('should accept null-prototype objects', () => {
-    const src = Object.create(null) as Dict;
-    src.a = 1;
-
-    const out = tspo.toDict(src);
-    expect(out).toBe(src);
-    expect(Object.getPrototypeOf(out)).toBeNull();
-  });
-
-  test('should throw for non-plain inputs with expected message', () => {
-    expect(() => tspo.toDict(new Date())).toThrowError(
-      'value passed to ".toDict" was not a plain-object',
-    );
-    expect(() => tspo.toDict([1, 2, 3])).toThrowError(
-      'value passed to ".toDict" was not a plain-object',
-    );
-  });
-});
-
-describe('tspo.coerce', () => {
-  test('should return the same reference for plain objects', () => {
-    const src = { a: 1 };
-    const out = tspo.coerce<typeof src>(src);
-
-    expect(out).toBe(src);
-    expect(out.a).toBe(1);
-  });
-
-  test('should throw for non-plain inputs with expected message', () => {
-    expect(() => tspo.coerce(new Date())).toThrowError(
-      'value passed to ".coerce" was not a plain-object',
-    );
-    expect(() => tspo.coerce([1, 2, 3])).toThrowError(
-      'value passed to ".coerce" was not a plain-object',
-    );
   });
 });
 
@@ -541,7 +489,7 @@ describe('tspo.reverseIndex', () => {
     expect(tspo.reverseIndex({ a: 1 }, 9)).toEqual([]);
   });
 
-  test('should use strict equality (===) and not coerce', () => {
+  test('should use strict equality (===) and not perform type coercion', () => {
     expect(tspo.reverseIndex({ a: 1, b: '1' }, '1')).toEqual(['b']);
   });
 

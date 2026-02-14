@@ -1,4 +1,4 @@
-import isPlainObject, { type PlainObject } from './helpers/isPlainObject.js';
+import isPlainObject from './helpers/isPlainObject.js';
 import type {
   AddEntries,
   DeepWiden,
@@ -13,6 +13,7 @@ import type {
   OmitKeys,
   PickKeys,
   SetToNever,
+  TruthyObject,
   ValueTuple,
 } from './helpers/utility-types.js';
 import compare from './utils/compare.js';
@@ -41,7 +42,7 @@ type CollapseType<T> = {
 /**
  * Return a new object by excluding certains keys from an object.
  */
-function omit<T extends PlainObject, K extends KeysParam<T>>(
+function omit<T extends TruthyObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): CollapseType<OmitKeys<T, K>> {
@@ -68,7 +69,7 @@ function omit<T extends PlainObject, K extends KeysParam<T>>(
 /**
  * Return a new object by selecting a specific set of keys on an object.
  */
-function pick<T extends PlainObject, K extends KeysParam<T>>(
+function pick<T extends TruthyObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): CollapseType<PickKeys<T, K>> {
@@ -95,7 +96,7 @@ function pick<T extends PlainObject, K extends KeysParam<T>>(
 /**
  * Merge two object together and return a new type.
  */
-function merge<T extends PlainObject, U extends PlainObject>(
+function merge<T extends TruthyObject, U extends TruthyObject>(
   a: T,
   b: U,
 ): CollapseType<Omit<T, keyof U> & U> {
@@ -105,7 +106,7 @@ function merge<T extends PlainObject, U extends PlainObject>(
 /**
  * Merge an array of objects together
  */
-function mergeArray<const A extends readonly PlainObject[]>(
+function mergeArray<const A extends readonly TruthyObject[]>(
   arr: A,
 ): CollapseType<MergeArray<A>> {
   return Object.assign({}, ...arr) as any;
@@ -125,7 +126,7 @@ function fill<const T extends object>(
 /**
  * Append a single entry to an object.
  */
-function addEntry<T extends PlainObject, K extends string, V>(
+function addEntry<T extends TruthyObject, K extends string, V>(
   obj: T,
   entry: [K, V],
 ): CollapseType<T & Record<K, V>> {
@@ -136,7 +137,7 @@ function addEntry<T extends PlainObject, K extends string, V>(
  * Append a single entry to an object.
  */
 function addEntries<
-  T extends PlainObject,
+  T extends TruthyObject,
   const E extends readonly EntryToAdd[],
 >(obj: T, entries: E): CollapseType<DeepWiden<AddEntries<T, E>>> {
   return {
@@ -149,7 +150,7 @@ function addEntries<
  * Append one object to another, modifying the reference to the original
  * object.
  */
-function append<T extends PlainObject, U extends PlainObject>(
+function append<T extends TruthyObject, U extends TruthyObject>(
   obj: T,
   addOn: U,
 ): asserts obj is CollapseType<T & U> {
@@ -161,7 +162,7 @@ function append<T extends PlainObject, U extends PlainObject>(
 /**
  * Remove keys from an object and set the type to 'never'.
  */
-function remove<T extends PlainObject, K extends KeysParam<T>>(
+function remove<T extends TruthyObject, K extends KeysParam<T>>(
   obj: T,
   keys: K,
 ): asserts obj is CollapseType<SetToNever<T, KeyUnion<T, K>>> {
@@ -174,7 +175,7 @@ function remove<T extends PlainObject, K extends KeysParam<T>>(
 /**
  * Get a value on an object and return 'undefined' if not found.
  */
-function index<T extends PlainObject>(
+function index<T extends TruthyObject>(
   obj: T,
   key: string | number,
 ): T[keyof T] | undefined {
@@ -184,7 +185,7 @@ function index<T extends PlainObject>(
 /**
  * Get a value on an object and return 'undefined' if not found.
  */
-function safeIndex<T extends PlainObject>(
+function safeIndex<T extends TruthyObject>(
   obj: T,
   key: string | number,
 ): T[keyof T] {
@@ -200,7 +201,7 @@ function safeIndex<T extends PlainObject>(
 /**
  * Get a list of keys for which the value matches.
  */
-function reverseIndex<T extends PlainObject>(
+function reverseIndex<T extends TruthyObject>(
   obj: T,
   value: unknown,
 ): (keyof T)[] {
@@ -216,7 +217,7 @@ function reverseIndex<T extends PlainObject>(
 /**
  * Get a key for a value only if you know the value is unique.
  */
-function safeReverseIndex<T extends PlainObject>(
+function safeReverseIndex<T extends TruthyObject>(
   obj: T,
   value: unknown,
 ): keyof T {
@@ -246,7 +247,7 @@ function safeReverseIndex<T extends PlainObject>(
 /**
  * Validator function to check
  */
-function isKey<T extends PlainObject>(
+function isKey<T extends TruthyObject>(
   obj: T,
   arg: PropertyKey,
 ): arg is keyof T {
@@ -260,7 +261,7 @@ function isKey<T extends PlainObject>(
 /**
  * Validator function to check
  */
-function isValue<T extends PlainObject>(
+function isValue<T extends TruthyObject>(
   obj: T,
   arg: unknown,
 ): arg is T[keyof T] {
@@ -295,28 +296,28 @@ function sameValueZero(a: unknown, b: unknown): boolean {
 /**
  * Get a type-safe array of the object keys.
  */
-function keys<T extends PlainObject>(obj: T): KeyTuple<T> {
+function keys<T extends TruthyObject>(obj: T): KeyTuple<T> {
   return Object.keys(obj) as any;
 }
 
 /**
  * Get a type-safe array of the object values
  */
-function values<T extends PlainObject>(obj: T): ValueTuple<T> {
+function values<T extends TruthyObject>(obj: T): ValueTuple<T> {
   return Object.values(obj) as any;
 }
 
 /**
  * Get a type-safe array of the object entries
  */
-function entries<T extends PlainObject>(obj: T): EntriesTuple<T> {
+function entries<T extends TruthyObject>(obj: T): EntriesTuple<T> {
   return Object.entries(obj) as any;
 }
 
 /**
  * Get a type-safe array of the object e
  */
-function firstEntry<T extends PlainObject>(obj: T): Entry<T> {
+function firstEntry<T extends TruthyObject>(obj: T): Entry<T> {
   const dict = obj as Dict;
   for (const key in obj) {
     if (hop.call(obj, key)) {
@@ -324,26 +325,6 @@ function firstEntry<T extends PlainObject>(obj: T): Entry<T> {
     }
   }
   return undefined as any;
-}
-
-/**
- * Check if something is a plain
- */
-function toDict(obj: unknown): Dict {
-  if (!isPlainObject(obj)) {
-    throw new Error('value passed to ".toDict" was not a plain-object');
-  }
-  return obj as Dict;
-}
-
-/**
- * Check if something is a plain
- */
-function coerce<T extends PlainObject>(obj: unknown): T {
-  if (!isPlainObject(obj)) {
-    throw new Error('value passed to ".coerce" was not a plain-object');
-  }
-  return obj as T;
 }
 
 /******************************************************************************
@@ -361,8 +342,6 @@ export default {
   addEntries,
   index,
   remove,
-  toDict,
-  coerce,
   safeIndex,
   reverseIndex,
   safeReverseIndex,

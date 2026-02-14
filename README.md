@@ -14,7 +14,7 @@
 
 ## 🤔 What is a plain-object?
 
-A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `NonNullable<object>`. Another useful type to make note of is _Dictionary_ (often abbreviated in code as `Dict`), which is a plain-object whose type is narrowed to `Record<string, unknown>`. Dictonaries can be handy for object mutation within function but are problematic at the API surface level because they won't accept interfaces.
+A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `Record<PropertyKey, unknown>`.
 
 3 ways to implement:
 
@@ -27,7 +27,7 @@ A _plain-object_ in JavaScript is any object which inherits directly from the ba
 ## ❓Why tspo?
 
 - Small, zero-dependency utility set centered around plain-object workflows.
-- Avoid constantly having to caste your objects to dictonary types before manipulation them.
+- Avoid having to manually create new types for different object shapes.
 - Runtime AND type-level safety in the same API surface.
 - Mutating utilities with assertion-based type refinement.
 - All complex-types collapsed for better IntelliSense.
@@ -81,13 +81,6 @@ Use this as a quick decision guide:
 | [`fill`](#fill)             | Combines defaults with a partial override    |
 | [`addEntry`](#addentry)     | Adds one `[key, value]` entry                |
 | [`addEntries`](#addentries) | Adds multiple `[key, value]` entries         |
-
-### Converting
-
-| Function                 | Notes                                                             |
-| ------------------------ | ----------------------------------------------------------------- |
-| [`toDict`](#todict)      | Runtime plain-object guard and returns a `Dict` type              |
-| [`coerce<T>`](#tocoerce) | Runtime plain-object guard and returns the generic `T` you supply |
 
 ### Mutators
 
@@ -172,7 +165,7 @@ const full = tspo.merge({ id: 1 }, { active: true });
 
 <a id="mergearray"></a>
 
-#### `.mergeArray(T: PlainObject[]): { ...T }`
+#### `.mergeArray(T: object[]): { ...T }`
 
 Returns a new object with every item from `T` merged into a single object. Note that if there's a conflict for the keys, value types will become unions.
 
@@ -225,32 +218,6 @@ const newDraft = tspo.addEntry(draft, [
 ]);
 // Value: { id: 1, team: 'one', age: 5 }
 // Type:  { id: number; team: string; age: string | number  }
-```
-
-### Converting
-
-<a id="todict"></a>
-
-#### `.toDict(arg: unknown): Dict (Record<string, unknown>)`
-
-Throws if the argument is not a plain-object and returns the original reference as a `Dict` type.
-
-```ts
-const draft = { id: 1, email: 'ada@example.com' };
-const rec: Record<string, unknown> = tspo.toDict(draft);
-```
-
-<a id="coerce"></a>
-
-#### `.coerce<T extends PlainObject>(arg: unknown): T`
-
-Throws if the argument is not a plain-object and returns the original reference as the generic you pass.
-
-> `.coerce` is handy when doing `JSON.parse` or sending objects over IO calls and you're certain of the type based on context.
-
-```ts
-const draft: string = JSON.stringify({ id: 1, email: 'ada@example.com' });
-const rec: IUser = tspo.coerce<IUser>(JSON.parse(draft));
 ```
 
 ### Mutators
@@ -345,9 +312,9 @@ const key = tspo.safeReverseIndex({ a: 1, b: 2 }, 2);
 
 <a id="is"></a>
 
-#### `.is(arg: unknown): arg is PlainObject (NonNullable<object>)`
+#### `.is(arg: unknown): arg is Record<PropertyKey, unknown>`
 
-Validator-function for TSPOs.
+Validator-function for plain-objects.
 
 ```ts
 tspo.is({ a: 1 }); // true
@@ -446,7 +413,7 @@ Recursively iterates a plain-object (and nested plain-objects/arrays) and fires 
 
 | Parameter | Type                      | Description                                  |
 | --------- | ------------------------- | -------------------------------------------- |
-| `parent`  | `PlainObject \| Array`    | Object or array containing the current entry |
+| `parent`  | `object \| Array`         | Object or array containing the current entry |
 | `key`     | `string \| number`        | Key/index on `parent`                        |
 | `value`   | `unknown`                 | Entry value                                  |
 | `path`    | `Array<string \| number>` | Path to `parent` from root                   |
@@ -473,7 +440,7 @@ tspo.iterate(
 
 <a id="copy"></a>
 
-#### `.copy(T: PlainObject, options?: "See Options Table Below"): T`
+#### `.copy(T: object, options?: "See Options Table Below"): T`
 
 Deep-clones a plain-object value but (by default) recursion only steps into nested plain-objects and arrays:
 

@@ -1,9 +1,8 @@
-import type { PlainObject } from './isPlainObject.js';
-
 /******************************************************************************
                                        Types                                    
 ******************************************************************************/
 
+export type TruthyObject = NonNullable<object>;
 type Primitive = string | number | boolean | bigint | symbol | null | undefined;
 export type Dict = Record<string, unknown>;
 
@@ -130,6 +129,6 @@ type MergeUnion<U extends object> = [UnionKeys<U>] extends [never]
       [K in UnionKeys<U>]: UnionValuesForKey<U, K>;
     };
 
-export type MergeArray<A extends readonly PlainObject[]> = MergeUnion<
+export type MergeArray<A extends readonly TruthyObject[]> = MergeUnion<
   A[number]
 >;

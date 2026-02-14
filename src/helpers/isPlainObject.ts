@@ -3,7 +3,7 @@
 ******************************************************************************/
 
 const objectProto = Object.prototype;
-export type PlainObject = NonNullable<object>;
+export type PlainObject = Record<PropertyKey, unknown>;
 
 /******************************************************************************
                                      Functions                                    

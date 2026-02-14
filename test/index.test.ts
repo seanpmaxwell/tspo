@@ -83,25 +83,6 @@ describe('Building', () => {
   });
 });
 
-// -- Converting -- //
-
-describe('Converting', () => {
-  test('.toDict', () => {
-    const draft = { id: 1, email: 'ada@example.com' };
-    const rec = tspo.toDict(draft);
-    rec.horse = 'cow';
-    delete rec.email;
-    expect(rec).toStrictEqual({ id: 1, horse: 'cow' });
-  });
-
-  test('.coerce', () => {
-    const draft = {};
-    const rec = tspo.coerce<IUser>(draft);
-    rec.id = 5;
-    expect(rec).toStrictEqual({ id: 5 });
-  });
-});
-
 // -- Mutating -- //
 
 describe('Mutating', () => {
