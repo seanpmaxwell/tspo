@@ -10,12 +10,15 @@ describe('src/index.ts export contract', () => {
       'omit',
       'pick',
       'merge',
+      'mergeArray',
       'fill',
       'append',
       'addEntry',
+      'addEntries',
       'index',
       'remove',
       'toDict',
+      'coerce',
       'safeIndex',
       'reverseIndex',
       'safeReverseIndex',
@@ -108,10 +111,29 @@ describe('tspo.toDict', () => {
 
   test('should throw for non-plain inputs with expected message', () => {
     expect(() => tspo.toDict(new Date())).toThrowError(
-      'value passed to ".toDict" not a plain-object',
+      'value passed to ".toDict" was not a plain-object',
     );
     expect(() => tspo.toDict([1, 2, 3])).toThrowError(
-      'value passed to ".toDict" not a plain-object',
+      'value passed to ".toDict" was not a plain-object',
+    );
+  });
+});
+
+describe('tspo.coerce', () => {
+  test('should return the same reference for plain objects', () => {
+    const src = { a: 1 };
+    const out = tspo.coerce<typeof src>(src);
+
+    expect(out).toBe(src);
+    expect(out.a).toBe(1);
+  });
+
+  test('should throw for non-plain inputs with expected message', () => {
+    expect(() => tspo.coerce(new Date())).toThrowError(
+      'value passed to ".coerce" was not a plain-object',
+    );
+    expect(() => tspo.coerce([1, 2, 3])).toThrowError(
+      'value passed to ".coerce" was not a plain-object',
     );
   });
 });
@@ -272,6 +294,26 @@ describe('tspo.merge', () => {
   });
 });
 
+describe('tspo.mergeArray', () => {
+  test('should merge an array of objects into a new object', () => {
+    const out = tspo.mergeArray([{ id: 1 }, { name: 'Ada' }, { active: true }]);
+
+    expect(out).toEqual({ id: 1, name: 'Ada', active: true });
+  });
+
+  test('should let right-most entries overwrite collisions', () => {
+    const out = tspo.mergeArray([{ a: 1, b: 2 }, { b: 9 }, { c: 3 }]);
+    expect(out).toEqual({ a: 1, b: 9, c: 3 });
+  });
+
+  test('should keep enumerable symbol keys via Object.assign semantics', () => {
+    const sym = Symbol('sym');
+    const out = tspo.mergeArray([{}, { [sym]: 123 }]);
+
+    expect((out as any)[sym]).toBe(123);
+  });
+});
+
 describe('tspo.fill', () => {
   test('should use defaults when partial is undefined', () => {
     expect(tspo.fill({ a: 1 }, undefined)).toEqual({ a: 1 });
@@ -359,32 +401,54 @@ describe('tspo.append', () => {
 });
 
 describe('tspo.addEntry', () => {
-  test('should mutate target object by adding one entry', () => {
+  test('should return a new object with one entry added', () => {
     const target = { a: 1 };
-    const ref = target;
+    const out = tspo.addEntry(target, ['b', 2]);
 
-    tspo.addEntry(target, ['b', 2]);
-
-    expect(target).toEqual({ a: 1, b: 2 });
-    expect(target).toBe(ref);
+    expect(out).toEqual({ a: 1, b: 2 });
+    expect(out).not.toBe(target);
+    expect(target).toEqual({ a: 1 });
   });
 
-  test('should overwrite existing keys', () => {
+  test('should overwrite existing keys on the returned object', () => {
     const target = { a: 1 };
-    tspo.addEntry(target, ['a', 9]);
+    const out = tspo.addEntry(target, ['a', 9]);
 
-    expect(target).toEqual({ a: 9 });
+    expect(out).toEqual({ a: 9 });
+    expect(target).toEqual({ a: 1 });
   });
 
-  test('should define __proto__ behavior explicitly', () => {
+  test('should treat "__proto__" as a data key on the returned object', () => {
     const target: Record<string, unknown> = {};
+    const out = tspo.addEntry(target, ['__proto__', { hacked: 1 }] as any);
 
-    tspo.addEntry(target, ['__proto__', { hacked: 1 }] as any);
+    expect((out as any).hacked).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(out, '__proto__')).toBe(true);
+    expect((out as any).__proto__).toEqual({ hacked: 1 });
+    expect(Object.getPrototypeOf(out)).toBe(Object.prototype);
+  });
+});
 
-    expect((target as any).hacked).toBe(1);
-    expect(Object.prototype.hasOwnProperty.call(target, '__proto__')).toBe(
-      false,
-    );
+describe('tspo.addEntries', () => {
+  test('should return a new object with multiple entries added', () => {
+    const target = { a: 1 };
+    const out = tspo.addEntries(target, [
+      ['b', 2],
+      ['c', 3],
+    ]);
+
+    expect(out).toEqual({ a: 1, b: 2, c: 3 });
+    expect(out).not.toBe(target);
+    expect(target).toEqual({ a: 1 });
+  });
+
+  test('should let later entries win on duplicate keys', () => {
+    const out = tspo.addEntries({ a: 1 }, [
+      ['a', 2],
+      ['a', 9],
+    ]);
+
+    expect(out).toEqual({ a: 9 });
   });
 });
 
@@ -1058,11 +1122,19 @@ describe('tspo.copy', () => {
 });
 
 describe('tspo.compare', () => {
-  test('should return false if either root is not a plain-object', () => {
-    expect(tspo.compare(null as any, {} as any)).toBe(false);
-    expect(tspo.compare({} as any, null as any)).toBe(false);
-    expect(tspo.compare([1] as any, [1] as any)).toBe(false);
-    expect(tspo.compare(new Date() as any, new Date() as any)).toBe(false);
+  test('should throw if either root is not a plain-object', () => {
+    expect(() => tspo.compare(null as any, {} as any)).toThrowError(
+      'compare only works for plain-objects',
+    );
+    expect(() => tspo.compare({} as any, null as any)).toThrowError(
+      'compare only works for plain-objects',
+    );
+    expect(() => tspo.compare([1] as any, [1] as any)).toThrowError(
+      'compare only works for plain-objects',
+    );
+    expect(() =>
+      tspo.compare(new Date() as any, new Date() as any),
+    ).toThrowError('compare only works for plain-objects');
   });
 
   test('should compare nested plain-objects deeply', () => {

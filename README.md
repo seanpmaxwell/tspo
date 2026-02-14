@@ -49,7 +49,7 @@ yarn add tspo
 ## ⚡ Quick start
 
 ```ts
-import tspo, { OmitRemoved } from 'tspo';
+import tspo from 'tspo';
 
 const user = {
   id: 1,
@@ -58,23 +58,12 @@ const user = {
 } as const;
 
 // Non-mutating functions
-const omitted = tspo.omit(user, 'email');
-// omitted -> { id: 1, name: "Ada" }
-const picked = tspo.pick(user, 'name');
-// picked -> { name: "Ada" }
-const merged = tspo.merge({ id: 1 }, { name: 'Ada' });
-// merged -> { id: 1, name: "Ada" }
-
-// Mutating functions
-const dog = { id: 1 };
-tspo.append(dog, { name: 'fido' });
-// dog -> { id: 1, name: fido }
-tspo.remove(dog, 'name');
-// dog -> { id: 1, name: never }
+tspo.omit(user, 'email'); // => { id: 1, name: "Ada" }
+tspo.pick(user, 'name'); // => { name: "Ada" }
+tspo.merge({ id: 1 }, { name: 'Ada' }); // => { id: 1, name: "Ada" }
 
 // Accessors
-const role = tspo.safeIndex(user, 'someString');
-// role -> 'id' | 'name' | 'email'
+tspo.safeIndex(user, 'someString'); // 'id' | 'name' | 'email'
 ```
 
 ## 📚 API Summary
@@ -257,14 +246,16 @@ const rec: Record<string, unknown> = tspo.toDict(draft);
 
 Throws if the argument is not a plain-object and returns the original reference as the generic you pass.
 
+> `.coerce` is handy when doing `JSON.parse` or sending objects over IO calls and you're certain of the type based on context.
+
 ```ts
-const draft: unknown = { id: 1, email: 'ada@example.com' };
-const rec: IUser = tspo.coerce<IUser>(draft);
+const draft: string = JSON.stringify({ id: 1, email: 'ada@example.com' });
+const rec: IUser = tspo.coerce<IUser>(JSON.parse(draft));
 ```
 
 ### Mutators
 
-- Functions which modify the provided object will mutate its type and value.
+- Functions which modify the original type/reference and return `void`.
 - **DO NOT** set a return value from mutation functions or type-updating will not work.
 
 <a id="append"></a>
@@ -434,10 +425,11 @@ const allEntries = tspo.entries(user);
 #### `.firstEntry(arg: object): [keyof T, T[keyof T]]`
 
 Returns the first entry by object enumeration order.
-This is useful when you know your object only has one entry but you don't know the `key` value.
+
+> This is useful when you know your object only has one entry but you don't know the `key` value. Passing one key/value pair of an object to a function is a common pattern when updating objects in TypeScript.
 
 ```ts
-const [key, value] = tspo.firstEntry({ id: 1, name: 'Ada' });
+const [key, value] = tspo.firstEntry({ id: 1 });
 // Value: ["id", 1]
 // Type: ["id", number]
 ```
@@ -448,7 +440,7 @@ const [key, value] = tspo.firstEntry({ id: 1, name: 'Ada' });
 
 #### `.iterate(root: object | array, cb: "See Callback below"): void`
 
-Recursively iterates a plain-object (and any nested plain-objects/arrays) and fires a callback for every key before descending.
+Recursively iterates a plain-object (and nested plain-objects/arrays) and fires a callback for every key before descending. Any object other than a plain-object or array IS NOT descended into.
 
 `Callback, (arg: { ...parameters }) => void`:
 
@@ -464,7 +456,7 @@ tspo.iterate(
   {
     user: { id: 1, name: 'Ada' }, // callback fires, then recursion enters `user`
     flags: ['staff'], // callback fires, then recursion enters `flags`
-    foo: new Set(), // callback fires (non-recursive leaf)
+    foo: new Set(), // callback fires (non-recursive value)
   },
   ({ key, value, path }) => {
     // fires for:
@@ -483,16 +475,17 @@ tspo.iterate(
 
 #### `.copy(T: PlainObject, options?: "See Options Table Below"): T`
 
-Copies a plain-object value. By default recursion only steps into nested plain-objects and arrays:
+Deep-clones a plain-object value but (by default) recursion only steps into nested plain-objects and arrays:
 
-- primitives/functions copied by value
-- Nested `Date` values are copied by epoch (default behavior)
-- By default, nested objects other than plain-objects/arrays (i.e. `Set/Map`) are only _shallow-cloned_.
+- Primitives/functions copied by value
+- Nested `Date` values are copied by epoch and new `Date` instances are returned.
+- Nested objects other than plain-objects/arrays (i.e. `Set/Map`) are only _shallow-cloned_.
+- With `options` some of this behavior can be overriden.
 
-| Option         | Type      | Default | Description                                          |
-| -------------- | --------- | ------- | ---------------------------------------------------- |
-| `resetDates`   | `boolean` | `false` | Resets all nested `Date` values to the current time. |
-| `deepCloneAll` | `boolean` | `false` | Deep-clones all nested object values.                |
+| Option         | Type      | Default | Description                                                       |
+| -------------- | --------- | ------- | ----------------------------------------------------------------- |
+| `resetDates`   | `boolean` | `false` | Resets all nested `Date` values to the current time.              |
+| `deepCloneAll` | `boolean` | `false` | Deep-clones all nested object values not just plain-object/arrays |
 
 > `.copy` is much faster than `structuredClone` with `deepCloneAll: false`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
 
@@ -515,7 +508,7 @@ const snapshot = tspo.copy({
     {
       company: 'Lowes',
       role: 'sales associate',
-      otherRoles: new Set(['fork-lift driver', 'cashier']), // -> `otherRoles` shallow-cloned
+      otherRoles: new Set(['fork-lift driver', 'cashier']), // -> `otherRoles` shallow-cloned (by default)
     },
   ],
 });
