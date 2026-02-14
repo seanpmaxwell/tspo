@@ -14,7 +14,7 @@
 
 ## 🤔 What is a plain-object?
 
-A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `NonNullable<object>`. Another useful type to make note of is _Dictionary_ (often abbreviated in code as `Dict`), which is a plain-object whose type is narrowed to `Record<string, unknown>`.
+A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `NonNullable<object>`. Another useful type to make note of is _Dictionary_ (often abbreviated in code as `Dict`), which is a plain-object whose type is narrowed to `Record<string, unknown>`. Dictonaries can be handy for object mutation within function but are problematic at the API surface level because they won't accept interfaces.
 
 3 ways to implement:
 
