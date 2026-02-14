@@ -113,17 +113,6 @@ function mergeArray<const A extends readonly TruthyObject[]>(
 }
 
 /**
- * Fill the missing entries in a partial, will the values from a 'defaults'
- * object.
- */
-function fill<const T extends object>(
-  defaults: T,
-  partial?: Partial<DeepWiden<T>>,
-): CollapseType<DeepWiden<T>> {
-  return { ...defaults, ...(partial ?? {}) } as any;
-}
-
-/**
  * Append a single entry to an object.
  */
 function addEntry<T extends TruthyObject, K extends string, V>(
@@ -294,6 +283,15 @@ function sameValueZero(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * Similar to `isPlainObject` but narrows a plain-object even further to
+ * exclude symbols. Note that when numbers are added as keys to objects they
+ * are converted to strings so we don't have to check for those.
+ */
+function isDict(arg: unknown): arg is Record<string, unknown> {
+  return isPlainObject(arg) && Object.getOwnPropertySymbols(arg).length === 0;
+}
+
+/**
  * Get a type-safe array of the object keys.
  */
 function keys<T extends TruthyObject>(obj: T): KeyTuple<T> {
@@ -336,7 +334,6 @@ export default {
   pick,
   merge,
   mergeArray,
-  fill,
   append,
   addEntry,
   addEntries,
@@ -355,4 +352,5 @@ export default {
   iterate,
   copy,
   compare,
+  isDict,
 } as const;

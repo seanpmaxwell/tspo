@@ -9,7 +9,6 @@ describe('src/index.ts export contract', () => {
       'pick',
       'merge',
       'mergeArray',
-      'fill',
       'append',
       'addEntry',
       'addEntries',
@@ -28,6 +27,7 @@ describe('src/index.ts export contract', () => {
       'iterate',
       'copy',
       'compare',
+      'isDict',
     ]);
   });
 
@@ -259,37 +259,6 @@ describe('tspo.mergeArray', () => {
     const out = tspo.mergeArray([{}, { [sym]: 123 }]);
 
     expect((out as any)[sym]).toBe(123);
-  });
-});
-
-describe('tspo.fill', () => {
-  test('should use defaults when partial is undefined', () => {
-    expect(tspo.fill({ a: 1 }, undefined)).toEqual({ a: 1 });
-  });
-
-  test('should use defaults when partial is null', () => {
-    expect(tspo.fill({ a: 1 }, {})).toEqual({ a: 1 });
-  });
-
-  test('should apply partial overrides', () => {
-    expect(tspo.fill({ a: 1, b: 2 }, { b: 9 })).toEqual({ a: 1, b: 9 });
-  });
-
-  test('should allow explicit undefined in partial to overwrite defaults', () => {
-    expect(tspo.fill({ a: 1 }, { a: undefined })).toEqual({ a: undefined });
-  });
-
-  test('should remain shallow for nested objects', () => {
-    const nested = { x: 1 };
-    const out = tspo.fill({ nested }, {});
-
-    expect(out.nested).toBe(nested);
-  });
-
-  test('should not mutate defaults object', () => {
-    const defaults = { a: 1, b: 2 };
-    tspo.fill(defaults, { a: 9 });
-    expect(defaults).toEqual({ a: 1, b: 2 });
   });
 });
 
@@ -590,6 +559,40 @@ describe('tspo.isValue', () => {
     const ref = { x: 1 };
     expect(tspo.isValue({ a: ref }, { x: 1 })).toBe(false);
     expect(tspo.isValue({ a: ref }, ref)).toBe(true);
+  });
+});
+
+describe('tspo.isDict', () => {
+  test('should return true for plain objects with string keys', () => {
+    expect(tspo.isDict({ a: 1, b: 'x' })).toBe(true);
+  });
+
+  test('should return true for null-prototype objects with string keys', () => {
+    const obj = Object.create(null) as Record<string, unknown>;
+    obj.a = 1;
+    expect(tspo.isDict(obj)).toBe(true);
+  });
+
+  test('should return false when object has symbol keys', () => {
+    const sym = Symbol('sym');
+    expect(tspo.isDict({ [sym]: 1 })).toBe(false);
+  });
+
+  test('should return false for non-plain values', () => {
+    class User {}
+    expect(tspo.isDict(null)).toBe(false);
+    expect(tspo.isDict([1, 2, 3])).toBe(false);
+    expect(tspo.isDict(new Date())).toBe(false);
+    expect(tspo.isDict(new User())).toBe(false);
+  });
+
+  test('should narrow unknown to Record<string, unknown>', () => {
+    const value: unknown = { a: 1 };
+    if (!tspo.isDict(value)) {
+      throw new Error('expected value to be a dict');
+    }
+    const rec: Record<string, unknown> = value;
+    expect(rec.a).toBe(1);
   });
 });
 

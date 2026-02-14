@@ -59,11 +59,6 @@ describe('Building', () => {
     expect(userDog).toStrictEqual({ ...User, ...Dog, player: 'team' });
   });
 
-  test('.fill', () => {
-    const userFull = tspo.fill(User, { id: 2 });
-    expect(userFull).toStrictEqual({ ...User, id: 2 });
-  });
-
   test('.addEntry', () => {
     const newUser = tspo.addEntry(User, ['address', '123 fake st']);
     expect(newUser).toStrictEqual({ ...User, address: '123 fake st' });
@@ -160,6 +155,15 @@ describe('Validator-functions', () => {
       val;
     }
     expect(tspo.isValue(User, val)).toStrictEqual(true);
+  });
+
+  test('.isDict', () => {
+    const val: unknown = User;
+    if (tspo.isDict(val)) {
+      val;
+    }
+    expect(tspo.isDict(User)).toStrictEqual(true);
+    expect(tspo.isDict({ [Symbol('hi')]: 'hi' })).toStrictEqual(false);
   });
 });
 

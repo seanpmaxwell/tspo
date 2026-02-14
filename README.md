@@ -78,7 +78,6 @@ Use this as a quick decision guide:
 | [`pick`](#pick)             | Returns object with selected keys            |
 | [`merge`](#merge)           | Returns `{...a, ...b}`                       |
 | [`mergeArray`](#mergearray) | Merge an array of objects to a single object |
-| [`fill`](#fill)             | Combines defaults with a partial override    |
 | [`addEntry`](#addentry)     | Adds one `[key, value]` entry                |
 | [`addEntries`](#addentries) | Adds multiple `[key, value]` entries         |
 
@@ -100,11 +99,12 @@ Use this as a quick decision guide:
 
 ### Validator functions
 
-| Function              | Notes                         |
-| --------------------- | ----------------------------- |
-| [`is`](#is)           | Runtime plain-object guard    |
-| [`isKey`](#iskey)     | Type guard for existing key   |
-| [`isValue`](#isvalue) | Type guard for existing value |
+| Function              | Notes                                            |
+| --------------------- | ------------------------------------------------ |
+| [`is`](#is)           | Runtime plain-object guard                       |
+| [`isKey`](#iskey)     | Type guard for existing key                      |
+| [`isValue`](#isvalue) | Type guard for existing value                    |
+| [`isDict`](#isdict)   | Narrow plain-object to `Record<string, unknown>` |
 
 ### Collections
 
@@ -126,6 +126,8 @@ Use this as a quick decision guide:
 ## 📖 API reference
 
 ### Object builders
+
+Due to performance reasons, most of the time you should use JavaScript's built-in _merge_ and _spread_ operations. However, the following may provide better ergonomics in certain scenarios: (i.e. you don't want to create a long list of unused variables).
 
 <a id="omit"></a>
 
@@ -176,18 +178,6 @@ const full = tspo.mergeArray([
 ]);
 // Value: { id: '1'; name: 'john', active: true }
 // Type:  { id: string | number; name: string; active: boolean }
-```
-
-<a id="fill"></a>
-
-#### `.fill(T: object, partial?: Partial<T>): T`
-
-Returns a full object `T`, using the first argument as the default, and appending supplied values from an optional partial (second argument).
-
-```ts
-const config = tspo.fill({ retries: 3, timeoutMs: 5000 }, { timeoutMs: 8000 });
-// Value: { retries: 3, timeoutMs: 8000 }
-// Type:  { retries: number; timeoutMs: number }
 ```
 
 <a id="addentry"></a>
@@ -347,6 +337,19 @@ const candidate: unknown = 'admin';
 if (tspo.isValue(user, candidate)) {
   // candidate is narrowed to `typeof user[keyof typeof user]`
 }
+```
+
+<a id="isdict"></a>
+
+#### `.isDict(arg: unknown): arg is Record<string, unknown>`
+
+Similar to `.is` above but narrows the keys to just strings. At runtime is makes
+sure none of the keys are symbols.
+
+```ts
+tspo.is({ a: 1 }); // true
+tspo.is(Object.create(null)); // true
+tspo.is([]); // false
 ```
 
 ### Collections
