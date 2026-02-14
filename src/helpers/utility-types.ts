@@ -1,4 +1,4 @@
-import type { PlainObject } from './isPlainObject';
+import type { PlainObject } from './isPlainObject.js';
 
 /******************************************************************************
                                        Types                                    
