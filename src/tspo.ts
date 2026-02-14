@@ -130,8 +130,7 @@ function addEntry<T extends PlainObject, K extends string, V>(
   obj: T,
   entry: [K, V],
 ): CollapseType<T & Record<K, V>> {
-  (obj as Dict)[entry[0]] = entry[1];
-  return obj as any;
+  return { ...obj, [entry[0]]: entry[1] } as any;
 }
 
 /**

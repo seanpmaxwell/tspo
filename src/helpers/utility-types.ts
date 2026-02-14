@@ -123,11 +123,17 @@ export type AddEntries<
 
 // -- MergeArray -- //
 
-type UnionToIntersectionAlt<U> = (
-  U extends unknown ? (x: U) => void : never
-) extends (x: infer I) => void
-  ? I
-  : never;
+type UnionKeys<U extends object> = U extends unknown ? keyof U : never;
 
-export type MergeArray<A extends readonly PlainObject[]> =
-  UnionToIntersectionAlt<A[number]>;
+type UnionValuesForKey<
+  U extends object,
+  K extends PropertyKey,
+> = U extends unknown ? (K extends keyof U ? U[K] : never) : never;
+
+type MergeUnion<U extends object> = [UnionKeys<U>] extends [never]
+  ? Dict
+  : {
+      [K in UnionKeys<U>]: UnionValuesForKey<U, K>;
+    };
+
+export type MergeArray<A extends readonly PlainObject[]> = MergeUnion<A[number]>;

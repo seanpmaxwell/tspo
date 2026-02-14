@@ -185,13 +185,15 @@ const full = tspo.merge({ id: 1 }, { active: true });
 
 #### `.mergeArray(T: PlainObject[]): { ...T }`
 
-Returns a new object with every item from `T` merged into a single object.
+Returns a new object with every item from `T` merged into a single object. Note that if there's a conflict for the keys, value types will become unions.
 
 ```ts
-// pick up here
-const full = tspo.merge({ id: 1 }, { active: true });
-// Value: { id: 1; active: true }
-// Type:  { id: number; active: boolean }
+const full = tspo.mergeArray([
+  { id: 1, name: 'john' },
+  { id: '1', active: true },
+]);
+// Value: { id: '1'; name: 'john', active: true }
+// Type:  { id: string | number; name: string; active: boolean }
 ```
 
 <a id="fill"></a>
@@ -223,16 +225,17 @@ const newDraft = tspo.addEntry(draft, ['team', 'platform']);
 
 #### `.addEntries(T: object, entries: [K, V][]): T & { [P in K]: V }`
 
-Returns a new object by adding multiple entries to `T`.
+Returns a new object by adding multiple entries to `T`. Note that if there's a conflict for the keys, value types will become unions.
 
 ```ts
 const draft = { id: 1 };
 const newDraft = tspo.addEntry(draft, [
   ['team', 'one'],
-  ['players', 5],
+  ['age', 5],
+  ['age', '5'],
 ]);
-// Value: { id: 1, team: 'one', players: 5 }
-// Type:  { id: number; team: string; players: number  }
+// Value: { id: 1, team: 'one', age: 5 }
+// Type:  { id: number; team: string; age: string | number  }
 ```
 
 ### Converting

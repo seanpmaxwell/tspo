@@ -25,7 +25,7 @@ interface IDog {
 }
 
 const Dog = {
-  id: 1,
+  id: 2,
   name: 'fido',
   age: 11,
 } as const satisfies IDog;
@@ -73,8 +73,13 @@ describe('Building', () => {
     const newUser = tspo.addEntries(User, [
       ['address', '123 fake st'],
       ['age', 5],
+      ['age', '5'],
     ]);
-    expect(newUser).toStrictEqual({ ...User, address: '123 fake st', age: 5 });
+    expect(newUser).toStrictEqual({
+      ...User,
+      address: '123 fake st',
+      age: '5',
+    });
   });
 });
 
