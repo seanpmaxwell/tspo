@@ -2,6 +2,8 @@ import { describe, expect, test, vi } from 'vitest';
 
 import tspo, { type OmitNever } from '../src';
 
+type Dict = Record<string, unknown>;
+
 describe('src/index.ts export contract', () => {
   test('should expose the documented default API surface', () => {
     expect(Object.keys(tspo)).toEqual([
@@ -117,10 +119,10 @@ describe('tspo.omit', () => {
   });
 
   test('should include inherited enumerable keys because implementation uses for...in', () => {
-    const proto = Object.create(null) as Record<string, unknown>;
+    const proto = Object.create(null) as Dict;
     proto.inherited = 1;
 
-    const src = Object.create(proto) as Record<string, unknown>;
+    const src = Object.create(proto) as Dict;
     src.own = 2;
 
     const out = tspo.omit(src, 'own');
@@ -175,10 +177,10 @@ describe('tspo.pick', () => {
   });
 
   test('should include inherited enumerable keys because implementation uses for...in', () => {
-    const proto = Object.create(null) as Record<string, unknown>;
+    const proto = Object.create(null) as Dict;
     proto.inherited = 1;
 
-    const src = Object.create(proto) as Record<string, unknown>;
+    const src = Object.create(proto) as Dict;
     src.own = 2;
 
     const out = tspo.pick(src, ['inherited'] as any);
@@ -280,13 +282,13 @@ describe('tspo.append', () => {
   });
 
   test('should copy inherited enumerable keys from addOn', () => {
-    const proto = Object.create(null) as Record<string, unknown>;
+    const proto = Object.create(null) as Dict;
     proto.inherited = 1;
 
-    const addOn = Object.create(proto) as Record<string, unknown>;
+    const addOn = Object.create(proto) as Dict;
     addOn.own = 2;
 
-    const target: Record<string, unknown> = {};
+    const target: Dict = {};
     tspo.append(target, addOn);
 
     expect(target).toEqual({ own: 2, inherited: 1 });
@@ -294,7 +296,7 @@ describe('tspo.append', () => {
 
   test('should ignore symbol keys from addOn', () => {
     const sym = Symbol('sym');
-    const target: Record<string, unknown> = {};
+    const target: Dict = {};
     const addOn = { a: 1, [sym]: 2 };
 
     tspo.append(target, addOn as any);
@@ -304,8 +306,8 @@ describe('tspo.append', () => {
   });
 
   test('should define __proto__ behavior explicitly', () => {
-    const target: Record<string, unknown> = {};
-    const addOn = Object.create(null) as Record<string, unknown>;
+    const target: Dict = {};
+    const addOn = Object.create(null) as Dict;
     addOn.__proto__ = { polluted: true };
 
     tspo.append(target, addOn);
@@ -336,7 +338,7 @@ describe('tspo.addEntry', () => {
   });
 
   test('should treat "__proto__" as a data key on the returned object', () => {
-    const target: Record<string, unknown> = {};
+    const target: Dict = {};
     const out = tspo.addEntry(target, ['__proto__', { hacked: 1 }] as any);
 
     expect((out as any).hacked).toBeUndefined();
@@ -467,10 +469,10 @@ describe('tspo.reverseIndex', () => {
   });
 
   test('should include inherited enumerable keys because implementation uses for...in', () => {
-    const proto = Object.create(null) as Record<string, unknown>;
+    const proto = Object.create(null) as Dict;
     proto.inherited = 1;
 
-    const obj = Object.create(proto) as Record<string, unknown>;
+    const obj = Object.create(proto) as Dict;
     obj.own = 1;
 
     expect(tspo.reverseIndex(obj, 1)).toEqual(['own', 'inherited']);
@@ -495,10 +497,10 @@ describe('tspo.safeReverseIndex', () => {
   });
 
   test('should include inherited enumerable keys when determining uniqueness', () => {
-    const proto = Object.create(null) as Record<string, unknown>;
+    const proto = Object.create(null) as Dict;
     proto.inherited = 1;
 
-    const obj = Object.create(proto) as Record<string, unknown>;
+    const obj = Object.create(proto) as Dict;
     obj.own = 2;
 
     expect(tspo.safeReverseIndex(obj, 1)).toBe('inherited');
@@ -568,7 +570,7 @@ describe('tspo.isDict', () => {
   });
 
   test('should return true for null-prototype objects with string keys', () => {
-    const obj = Object.create(null) as Record<string, unknown>;
+    const obj = Object.create(null) as Dict;
     obj.a = 1;
     expect(tspo.isDict(obj)).toBe(true);
   });
@@ -586,12 +588,12 @@ describe('tspo.isDict', () => {
     expect(tspo.isDict(new User())).toBe(false);
   });
 
-  test('should narrow unknown to Record<string, unknown>', () => {
+  test('should narrow unknown to Dict', () => {
     const value: unknown = { a: 1 };
     if (!tspo.isDict(value)) {
       throw new Error('expected value to be a dict');
     }
-    const rec: Record<string, unknown> = value;
+    const rec: Dict = value;
     expect(rec.a).toBe(1);
   });
 });
@@ -754,7 +756,7 @@ describe('tspo.iterate', () => {
   });
 
   test('should recurse into nested Object.create(null) objects', () => {
-    const bare = Object.create(null) as Record<string, unknown>;
+    const bare = Object.create(null) as Dict;
     bare.leaf = 42;
     const root = { bare };
 
@@ -852,7 +854,7 @@ describe('tspo.copy', () => {
   });
 
   test('should preserve null prototype for root null-prototype objects', () => {
-    const src = Object.create(null) as Record<string, unknown>;
+    const src = Object.create(null) as Dict;
     src.nested = { x: 1 };
 
     const out = tspo.copy(src);
@@ -1043,7 +1045,7 @@ describe('tspo.copy', () => {
     const src = { visible: 1, [sym]: 2 } as Record<string | symbol, unknown>;
     Object.defineProperty(src, 'hidden', { value: 3, enumerable: false });
 
-    const out = tspo.copy(src as Record<string, unknown>);
+    const out = tspo.copy(src as Dict);
 
     expect(out).toEqual({ visible: 1 });
     expect(Object.getOwnPropertySymbols(out)).toHaveLength(0);
@@ -1065,7 +1067,7 @@ describe('tspo.copy', () => {
   });
 
   test('should throw for circular references (not supported)', () => {
-    const src: Record<string, unknown> = {};
+    const src: Dict = {};
     src.self = src;
 
     expect(() => tspo.copy(src)).toThrow();
@@ -1137,8 +1139,8 @@ describe('tspo.compare', () => {
   });
 
   test('should ignore non-enumerable keys because Object.keys is used', () => {
-    const a = { x: 1 } as Record<string, unknown>;
-    const b = { x: 1 } as Record<string, unknown>;
+    const a = { x: 1 } as Dict;
+    const b = { x: 1 } as Dict;
 
     Object.defineProperty(a, 'hidden', { value: 1, enumerable: false });
     Object.defineProperty(b, 'hidden', { value: 2, enumerable: false });
@@ -1147,14 +1149,14 @@ describe('tspo.compare', () => {
   });
 
   test('should ignore inherited keys because Object.keys only checks own keys', () => {
-    const protoA = Object.create(null) as Record<string, unknown>;
+    const protoA = Object.create(null) as Dict;
     protoA.inherited = 1;
-    const a = Object.create(protoA) as Record<string, unknown>;
+    const a = Object.create(protoA) as Dict;
     a.own = 1;
 
-    const protoB = Object.create(null) as Record<string, unknown>;
+    const protoB = Object.create(null) as Dict;
     protoB.inherited = 999;
-    const b = Object.create(protoB) as Record<string, unknown>;
+    const b = Object.create(protoB) as Dict;
     b.own = 1;
 
     expect(tspo.compare(a, b)).toBe(true);

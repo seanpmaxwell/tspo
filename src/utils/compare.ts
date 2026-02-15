@@ -1,5 +1,5 @@
-import isPlainObject, { type PlainObject } from '../helpers/isPlainObject.js';
-import type { Dict } from '../helpers/utility-types.js';
+import isPlainObject from '../helpers/isPlainObject.js';
+import type { Dict, TruthyObject } from '../helpers/utility-types.js';
 
 /******************************************************************************
                                   Constants
@@ -20,7 +20,7 @@ const hop = Object.prototype.hasOwnProperty;
  * - compare Date by epoch (`getTime()`)
  * - compare any other object values by reference
  */
-function compare(a: PlainObject, b: PlainObject): boolean {
+function compare(a: TruthyObject, b: TruthyObject): boolean {
   if (!isPlainObject(a) || !isPlainObject(b)) {
     throw new Error('compare only works for plain-objects');
   }
@@ -32,7 +32,7 @@ function compare(a: PlainObject, b: PlainObject): boolean {
  *
  * Compare plain-objects.
  */
-function comparePlainObjects(a: PlainObject, b: PlainObject): boolean {
+function comparePlainObjects(a: TruthyObject, b: TruthyObject): boolean {
   let aSize = 0;
   for (const key in a) {
     if (!hop.call(a, key)) continue;

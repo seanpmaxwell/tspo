@@ -1,4 +1,5 @@
-import isPlainObject, { type PlainObject } from '../helpers/isPlainObject.js';
+import isPlainObject from '../helpers/isPlainObject.js';
+import type { Dict, TruthyObject } from '../helpers/utility-types.js';
 
 /******************************************************************************
                                      Constants                                   
@@ -12,7 +13,7 @@ const hop = Object.prototype.hasOwnProperty;
 
 // Callback for the iterate function
 type IterateCb = (args: {
-  parent: PlainObject | unknown[];
+  parent: TruthyObject | unknown[];
   key: string | number;
   value: unknown;
   path: readonly (string | number)[]; // path to the parent node
@@ -39,7 +40,7 @@ function iterate(root: unknown, cb: IterateCb): void {
  * @see iterate
  */
 function iterateHelper(
-  node: PlainObject | unknown[],
+  node: TruthyObject | unknown[],
   path: (string | number)[],
   cb: IterateCb,
 ): void {
@@ -57,7 +58,7 @@ function iterateHelper(
     return;
   }
   // Walk
-  const dict = node as Record<string, unknown>;
+  const dict = node as Dict;
   for (const key in dict) {
     if (!hop.call(dict, key)) continue;
     const value = dict[key];

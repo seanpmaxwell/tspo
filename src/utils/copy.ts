@@ -1,5 +1,5 @@
-import isPlainObject, { type PlainObject } from '../helpers/isPlainObject.js';
-import type { Dict, Mutable } from '../helpers/utility-types.js';
+import isPlainObject from '../helpers/isPlainObject.js';
+import type { Dict, Mutable, TruthyObject } from '../helpers/utility-types.js';
 
 /******************************************************************************
                                   Constants
@@ -30,7 +30,7 @@ interface CopyOptions {
  * - Other nested non-plain objects are shallow-cloned by default.
  * - `deepCloneAll` deep-clones all nested object values.
  */
-function copy<T extends PlainObject>(
+function copy<T extends TruthyObject>(
   value: T,
   options?: CopyOptions,
 ): Mutable<T> {
