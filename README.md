@@ -14,7 +14,7 @@
 
 ## 🤔 What is a plain-object?
 
-A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `Record<PropertyKey, unknown>`.
+A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `Record<PropertyKey, unknown>`. Another important term to note is _Dictionary_, which is often used interchangeably with plain-object. A _Dictionary_ is a plain-object whose type has been narrowed to `Record<string, unknown>`. In JavaScript, numbers are converted to strings when added as object-keys and `Symbols` are rarely used outside of creating libraries so differentiating the two is rarely important, **BUT** to prevent ambiguity we'll distinguish them here.
 
 3 ways to implement:
 
@@ -347,9 +347,9 @@ Similar to `.is` above but narrows the keys to just strings. At runtime is makes
 sure none of the keys are symbols.
 
 ```ts
-tspo.is({ a: 1 }); // true
-tspo.is(Object.create(null)); // true
-tspo.is([]); // false
+tspo.isDict({ a: 1 }); // true
+tspo.isDict(Object.create(null)); // true
+tspo.isDict({ [Symbol('foo')]: 'bar' }); // false
 ```
 
 ### Collections
