@@ -11,9 +11,17 @@ const hop = Object.prototype.hasOwnProperty;
                                      Types                                    
 ******************************************************************************/
 
+// Must be defined in the file it is used in
+type CollapseType<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+type CopyReturn<T, O> = O extends { mutable: false } ? T : Mutable<T>;
+
 interface CopyOptions {
   resetDates?: boolean;
   deepCloneAll?: boolean;
+  mutable?: boolean;
 }
 
 /******************************************************************************
@@ -30,10 +38,10 @@ interface CopyOptions {
  * - Other nested non-plain objects are shallow-cloned by default.
  * - `deepCloneAll` deep-clones all nested object values.
  */
-function copy<T extends TruthyObject>(
-  value: T,
-  options?: CopyOptions,
-): Mutable<T> {
+function copy<
+  T extends TruthyObject,
+  O extends CopyOptions | undefined = undefined,
+>(value: T, options?: O): CollapseType<CopyReturn<T, O>> {
   if (!isPlainObject(value)) {
     throw new TypeError('.copy only accepts a plain-object as the root value');
   }
@@ -44,7 +52,7 @@ function copy<T extends TruthyObject>(
     Object.getPrototypeOf(value),
     resetDates,
     deepCloneAll,
-  ) as Mutable<T>;
+  ) as any;
 }
 
 /**

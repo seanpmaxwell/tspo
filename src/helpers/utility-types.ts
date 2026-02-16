@@ -10,9 +10,13 @@ export type Dict = Record<string, unknown>;
 
 export type KeysParam<T extends object> = keyof T | (keyof T)[];
 
-export type Mutable<T> = {
-  -readonly [K in keyof T]: T[K];
-};
+export type Mutable<T> = T extends (...args: any[]) => any
+  ? T
+  : T extends ReadonlyArray<infer U>
+    ? Mutable<U>[]
+    : T extends object
+      ? { -readonly [K in keyof T]: Mutable<T[K]> }
+      : T;
 
 // Resolve key or array of keys of 'T'
 export type KeyUnion<
