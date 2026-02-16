@@ -235,7 +235,7 @@ const UserFull = {
 
 describe('Utilities', () => {
   test('.copy', () => {
-    const userFullCopy = tspo.copy(UserFull);
+    const userFullCopy = tspo.copy(UserFull, { mutable: false });
     expect(userFullCopy).toStrictEqual(UserFull);
     expect(userFullCopy.address).not.toBe(UserFull.address);
     expect(userFullCopy.jobHistory).not.toBe(UserFull.jobHistory);
@@ -310,10 +310,10 @@ describe('Utilities', () => {
 /**
  * Test sets for content (not reference equality)
  */
-function setsAreEqual(setA: Set<string>, setB: Set<string>) {
-  if (setA.size !== setB.size) return false;
-  for (let value of setA) {
-    if (!setB.has(value)) return false;
+function setsAreEqual(a: Set<string>, b: Set<string>) {
+  if (a.size !== b.size) return false;
+  for (const value of a) {
+    if (!b.has(value)) return false;
   }
   return true;
 }

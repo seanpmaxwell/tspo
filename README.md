@@ -127,25 +127,7 @@ Use this as a quick decision guide:
 
 ### Object builders
 
-Due to performance reasons, most of the time you should use JavaScript's built-in _merge_ and _spread_ operations. However, the following Object builders may provide better ergonomics in certain scenarios.
-
-As you can see in the following example, with `.pick` we can create our new object in one line without generating unused variables.
-```ts
-// Using spread
-const setupUserView(user: IUser): UserView {
-  const { id, name, email, ...other } = user,
-    userView: UserView = { id, name, email };
-  ...do stuff
-}
-
-// Using tsgo.pick
-const setupUserView(user: IUser): UserView {
-  const userView = tsgo.pick(user, ['id', 'name', 'email']);
-  ...do stuff
-}
-```
-
-> What about **lodash.pick**? If you're using lodash you probably don't need **tsgo**; however, lodash is pretty bloated while **tsgo** focuses on plain-objects. 
+Due to performance reasons, most of the time you should use JavaScript's built-in _merge_ and _spread_ operations. However, the following may provide better ergonomics in certain scenarios; i.e. testing environments where we need to hardcode bad data not allowed on the type to check validation is working.
 
 <a id="omit"></a>
 
@@ -463,17 +445,15 @@ tspo.iterate(
 
 #### `.copy(T: object, options?: "See Options Table Below"): T`
 
-Deep-clones a plain-object value but (by default) recursion only steps into nested plain-objects and arrays:
+Deep-clones a plain-object value but (by default) recursion only steps into nested plain-objects and arrays. `Date` instances are copied by their epoch and all other objects are _shallow-cloned_.
 
-- Primitives/functions copied by value
-- Nested `Date` values are copied by epoch and new `Date` instances are returned.
-- Nested objects other than plain-objects/arrays (i.e. `Set/Map`) are only _shallow-cloned_.
-- With `options` some of this behavior can be overriden.
+With `options` some of this behavior can be overriden.
 
-| Option         | Type      | Default | Description                                                       |
-| -------------- | --------- | ------- | ----------------------------------------------------------------- |
-| `resetDates`   | `boolean` | `false` | Resets all nested `Date` values to the current time.              |
-| `deepCloneAll` | `boolean` | `false` | Deep-clones all nested object values not just plain-object/arrays |
+| Option         | Type      | Default | Description                                                        |
+| -------------- | --------- | ------- | ------------------------------------------------------------------ |
+| `resetDates`   | `boolean` | `false` | Resets all instaces of `Date` to the current time.                 |
+| `mutable`      | `boolean` | `true`  | `readonly` will be removed from every property and nested property |
+| `deepCloneAll` | `boolean` | `false` | Deep-clones all nested object values not just plain-object/arrays  |
 
 > `.copy` is much faster than `structuredClone` with `deepCloneAll: false`, so is recommended when you don't need deep-cloning for anything other than plain-objects/arrays.
 
