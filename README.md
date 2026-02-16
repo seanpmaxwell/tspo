@@ -14,15 +14,9 @@
 
 ## 🤔 What is a plain-object?
 
-A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `Record<PropertyKey, unknown>`. Another important term to note is _Dictionary_, which is often used interchangeably with plain-object. A _Dictionary_ is a plain-object whose type has been narrowed to `Record<string, unknown>`. In JavaScript, numbers are converted to strings when added as object-keys and `Symbols` are rarely used outside of creating libraries so differentiating the two is rarely important, **BUT** to prevent ambiguity we'll distinguish them here.
+A _plain-object_ in JavaScript is any object which inherits directly from the base `Object` class and no other, or is created through `Object.create(null)` (aka _null-prototype object_). TypeScript technically has no concept of plain-object so we'll consider a TypeScript plain-object as any JavaScript plain-object whose type is `Record<PropertyKey, unknown>`.
 
-3 ways to implement:
-
-- **object-literals:** (most-common), i.e `var user = { id: 1, name: 'john' }`
-- **Object constructor:** `var user = new Object()`
-- **null-prototype objects:** `var user = Object.create(null)`
-
-> _object-literals_ and _instances of Object_ will inherit from the base _Object_ class; hence, they can use methods like `.hasOwnProperty`. _null-prototype objects_ inherit from nothing so cannot use these functions.
+> If you would like to learn more about plain-objects and object terminology please check the _TypeScript Best Practices_ section about objects <a href="https://github.com/seanpmaxwell/Typescript-Best-Practices/blob/main/README.md#objects">here</a>.
 
 ## ❓Why tspo?
 
